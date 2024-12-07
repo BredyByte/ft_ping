@@ -1,6 +1,37 @@
 #include "ping.h"
 
 /*
+Ethernet header - 14 bytes:
+	- Destination MAC 6 bytes
+	- Source MAC 6 bytes
+	- EtherType 2 bytes
+IP header - 20 bytes:
+	- Version 4 bytes
+	- IHL (Internet Header Length) 4 bytes
+	- Type of Service 1 byte
+	- Total Length 2 bytes
+	- Identification 2 bytes
+	- Flags 3 bits
+	- Fragment Offset 13 bits
+	- Time to Live (TTL) 1 byte
+	- Protocol 1 byte
+	- Header Checksum 2 bytes
+	- Source IP Address 4 bytes
+	- Destination IP Address 4 bytes
+ICMP header - 8 bytes:
+	- Type 1 byte
+	- Code 1 byte
+	- Checksum 2 bytes
+	- Identifier 2 bytes
+	- Sequence Number 2 bytes
+	- Gateway 4 bytes
+	- MTU 2 bytes
+payload - 1458 bytes
+MTU - Maximum Transmission Unit - 1500 bytes
+*/
+
+
+/*
 Tips:
 	- ICMP packets are raw packets, so you'll need root permissions to send them.
 		if (getuid() != 0) {
@@ -13,24 +44,77 @@ Tips:
 
 /*
 ICMP structure from <netinet/ip_icmp.h>
-	struct icmphdr {
-		uint8_t	type;		// Specifies the type of ICMP message. (ex. 0 Echo Reply, 3 Destination Unreachable, 8 Echo Request (using in ping))
 
-		uint8_t code;		// Provides additional context for the type.
-							// (ex. for type = 3 (Dest. Unreachable) code indicate: 0 Network Unreachable, 1 Host Unreachable, 2 Protocol Unreachable)
-		uint16_t checksum;	// Ensures data integrity for the ICMP packet. Calculated over the entire ICMP packet, including the header and data.
+A union in C is a special construct that allows multiple variables of different types to share the same memory location.
+	- All fields inside a union share the same memory.
+	- The size of a union is determined by its largest member
+	- It is used to save memory when only one of the fields will be used at a time.
+
+structure:
+	- type: Specifies the type of ICMP message:
+		0 Echo Reply
+		3 Destination Unreachable
+		8 Echo Request (using in ping)
+		5 Redirection
+
+	- code: Provides additional context for the type:
+		for type = 3
+			0: Network Unreachable
+			1: Host Unreachable
+			2: Protocol Unreachable
+			4: Fragmentation Needed
+		for type = 5
+			0: Redirect for a specific network
+			1: Redirect for a specific host
+			2: Redirect for a specific type of service and network
+			3: Redirect for a specific type of service and host
+
+	- checksum: Ensures data integrity for the ICMP packet.
+		Calculated over the entire ICMP packet, including the header and data.
+
+	- union un: is used to hold different types of data depending on the ICMP message type (type).
+		Each ICMP message type defines which specific field in the union is used.
+		Here is some cases:
+			- type = 8 (Echo request) or type = 0 (Echo reply) the echo field is used:
+				- id:
+					Uniquely identifies the process or device sending the ICMP packet.
+					(usually derived from the process ID of the application initiating the request).
+
+					Ensures that replies are correctly matched with requests.
+				- sequence:
+					Tracks the order of ICMP packets.
+					Helps detect packet loss and calculate round-trip time RTT.
+
+				ex:
+					Request: id = 100, sequence = 1, 2, 3, 4, 5
+					Reply:   id = 100, sequence = 1, 2, 4, 5 (sequence 3 is missing)
+			- type = 5 (Redirect) The gateway field is used.
+				- gateway: The gateway field stores the IP address of a new gateway (router) that the sender of the ICMP Redirect message suggests the target should use.
+					To inform a host about a more efficient route to a destination. This is part of the network optimization process to reduce latency and avoid inefficient routing paths.
+					Example Scenario:
+						1. Host A sends the packet to Router 1.
+						2. Router 1 forwards the packet to Router 2 but also sends an ICMP Redirect message to Host A.
+						3. Host A updates its routing table to use Router 2 for packets destined for Host B.
+			- type = 3 and code = 4 (Fragmentation Needed) The frag field is used. It contains the MTU value for the next hop.
+
+
+	struct icmphdr {
+		uint8_t	type;
+		uint8_t code;
+		uint16_t checksum;
+
 		union {
 			struct {
-				uint16_t id;	// Requests/Replies: echo.id and echo.sequence identify the message.
+				uint16_t id;
 				uint16_t sequence;
-			} echo;				// echo datagram
+			} echo;				// For Echo Request/Reply type 0 reply , 8 - request
 
-			uint32_t gateway;	// gateway address. For Redirects: gateway holds the new route.
+			uint32_t gateway;	// For ICMP Redirect messages type 5 redirection
 
 			struct {
 				uint16_t __glibc_reserved;
-				uint16_t mtu; // For Fragmentation: frag.mtu specifies the Maximum Transmission Unit.
-			} frag;			// path mtu discovery
+				uint16_t mtu;	// Maximum Transmission Unit for fragmentation messages
+			} frag;				// For messages about fragmentation issues
 		} un;
 	};
 */
@@ -135,6 +219,14 @@ int main() {
     close(sockfd);
     return 0;
 }
+
+/*
+todo:
+	- WireShark check icmp packet
+	- Analize ICMP packet structure and document it
+	- Analize IP packet structure and document it
+	- Resolve doubts about the subject.
+*/
 
 /*
 doubts:
