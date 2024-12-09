@@ -40,6 +40,7 @@ Tips:
 		}
 	- The checksum is critical for ensuring data integrity.
 	- The structure includes support for various ICMP message types, such as Echo, Destination Unreachable, and Time Exceeded.
+	- Think about Ctrl+C
 */
 
 /*
@@ -120,6 +121,23 @@ structure:
 */
 
 /*
+IP structure from <netinet/ip.h>
+struct iphdr {
+	unsigned int ihl:4; 		// Header length (in 32-bit words)	(def. 4)
+	unsigned int version:4;		// Version (4 for IPv4)				(def. 5)
+	uint8_t tos;				// Type of service					(def. 0)
+	uint16_t tot_len;			// Total length						(IP 20 bytes + ICMP 8 byte + payload 56 bytes)
+	uint16_t id;				// Identification					(Incremental)
+	uint16_t frag_off;			// Fragment offset field			(def. 0 or 0x4000 if no fragmentation)
+	uint8_t ttl;				// Time to live						(def. 64 for linux and macOS)
+	uint8_t protocol;			// Protocol							(def. 1 for ICMP)
+	uint16_t check;				// Header checksum					(Data dependent)
+	uint32_t saddr;				// Source address					(My ip addr)
+	uint32_t daddr;				// Destination address				(Final dest. ip addr like '8.8.8.8' Google DNS)
+};
+*/
+
+/*
 Implement SHA-256 for data integrity ???:
 	- Use a cryptographic hash function to create a hash of the ICMP packet.
 	- Include the hash in a custom field of the ICMP payload.
@@ -185,11 +203,11 @@ unsigned short checksum(void *b, int len) {
     return result;
 }
 
-int main() {
-    int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // RAW-socket
+void test_icmp(void) {
+	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // RAW-socket
     if (sockfd < 0) {
         perror("Socket creation failed");
-        return 1;
+        exit(1);
     }
 
     struct sockaddr_in dest_addr;
@@ -211,33 +229,128 @@ int main() {
     if (sendto(sockfd, &icmp_hdr, sizeof(icmp_hdr), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) <= 0) {
         perror("Send failed");
         close(sockfd);
-		return 1;
+		exit(1);
     }
 
     printf("ICMP Echo Request sent to 8.8.8.8\n");
 
     close(sockfd);
-    return 0;
+}
+
+int lookup_host(const char *host) {
+	struct addrinfo hints, *tmpres, *result;
+	int errcode;
+	char addrstr[100];
+	char local_canonname[100];
+	void *ptr;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags |= AI_CANONNAME;
+
+	errcode = getaddrinfo(host, NULL, &hints, &result);
+	if (errcode != 0) {
+		perror ("getaddrinfo");
+		return -1;
+	}
+
+	tmpres = result;
+
+	printf ("Host: %s\n", host);
+	while (tmpres) {
+		ptr = &((struct sockaddr_in *)tmpres->ai_addr)->sin_addr;
+		inet_ntop(tmpres->ai_family, ptr, addrstr, 100); // Convert from binary to text
+
+		if (tmpres->ai_canonname != NULL) {
+			strncpy(local_canonname, tmpres->ai_canonname, sizeof(local_canonname) - 1);
+			local_canonname[sizeof(local_canonname) - 1] = '\0';  // Null-terminate
+		} else {
+			strcpy(local_canonname, "Void");
+		}
+
+		printf("IPv%d address: %s (%s)\n", 4, addrstr, local_canonname);
+
+		tmpres = tmpres->ai_next;
+	}
+
+  	freeaddrinfo(result);
+
+  	return 0;
+}
+
+void test_getaddrinfo(void) {
+	char inbuf[256];
+	int len;
+
+	while(1) {
+		bzero(inbuf, 256);
+		printf("Type domain name: ");
+		fgets(inbuf, 256, stdin);
+
+		printf("\n");
+
+		len = strlen(inbuf);
+		inbuf[len-1] = '\0';
+
+		if(strlen(inbuf) > 0) {
+			lookup_host(inbuf);
+		} else {
+			exit(EXIT_SUCCESS);
+		}
+
+		printf("\n");
+	}
+
+}
+
+int main() {
+	test_getaddrinfo();
+
+	return 0;
 }
 
 /*
 todo:
-	- WireShark check icmp packet
-	- Analize ICMP packet structure and document it
-	- Analize IP packet structure and document it
-	- Resolve doubts about the subject.
+	- WireShark check icmp and ip packet for ping-request
+	- Analize ICMP packet structure and document it	✅
+	- Analize IP packet structure and document it	✅
+	- Resolve doubts about the subject.				✅
+	- -v mode, what id 0x059c = 1436 means ?????
+	- Ping behaviour
 */
 
 /*
 doubts:
-	- You will take as reference the ping implementation from inetutils-2.0 (ping -V).
-	- You are authorised to use the libc functions to complete this project.
-	- You have to manage the -v -? options
-	- The -v option here will also allow us to see the results in case of a
-	problem or an error linked to the packets, which logically shouldn’t
-	force the program to stop (the modification of the TTL value can help
-	to force an error).
-	- You will have to manage FQDN without doing the DNS resolution in the packet return
-	- Except for the RTT line and the reverse DNS resolution, the result must have an
-	indentation identical to the implementation from inetutils-2.0
+	- You will take as reference the ping implementation from inetutils-2.0 (ping -V).		✅	(sudo apt-get install inetutils-ping)
+	- You are authorised to use the libc functions to complete this project.				✅	(all standart libs)
+	- You have to manage the -v -? options													✅	(-v verbose, -? or -h help menu)
+	- The -v option here will also allow us to see the results in case of a					✅
+		problem or an error linked to the packets, which logically shouldn’t
+		force the program to stop (the modification of the TTL value can help
+		to force an error).
+	- You will have to manage FQDN (Fully Qualified Domain Name)ex. www.example.com			✅ (do DNS resolution just on requesting, but on received response no)
+		without doing the DNS resolution in the packet return
+	- Except for the RTT line and the reverse DNS resolution, the result must have an		✅
+		indentation identical to the implementation from inetutils-2.0
+
+	ex:
+	command: ping -c 1 google.com
+	return value:	PING google.com (142.250.184.14) 56(84) bytes of data.
+					64 bytes from mad41s10-in-f14.1e100.net (142.250.184.14): icmp_seq=1 ttl=114 time=10.8 ms
+
+	so, it's not necessary to do DNS resolution on response and rtt doesn't have to be exactly the same
+	A delay of +/- 30ms is tolerated on the reception of a packet.
 */
+
+/*
+For bonus:
+	-c stop after <count> replies
+	-t define time to live - ttl
+*/
+
+/*
+Ping behaviour:
+*/
+
+

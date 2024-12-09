@@ -1,0 +1,5 @@
+PING google.com (142.250.184.14): 56 data bytes, id 0x05cd = 1485
+64 bytes from 142.250.184.14: icmp_seq=0 ttl=114 time=11.304 ms
+--- google.com ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 11.304/11.304/11.304/0.000 ms
