@@ -1,6 +1,7 @@
 #include "ping.h"
 
 
+
 t_data global_data;
 
 /*
@@ -215,9 +216,88 @@ void test_getaddrinfo(void) {
 
 }
 
-int check_args(int argc, char **argv) {
+
+// typedef struct s_args {
+//     bool	v_flag;       	// --verbose (-v)
+//     bool	f_flag;       	// --flood (-f)
+//     bool	q_flag;       	// --quiet (-q)
+//     bool	help_flag;    	// --help (-?)
+//     bool	version_flag; 	// --version (-V)
+//     int		count;         	// --count (-c)
+//     int		interval;      	// --interval (-i)
+//     int		timeout;       	// --timeout (-w)
+//     int		linger;        	// --linger (-W)
+//     char	pattern[256];	// --pattern (-p)
+//     int		ttl;           	// --ttl
+// } t_args;
+
+int parse_arguments(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
+
+	int opt;
+
+	global_data.f_args.v_flag = false;
+	global_data.f_args.f_flag = false;
+	global_data.f_args.q_flag = false;
+	global_data.f_args.count = -1;
+	global_data.f_args.interval = -1;
+	global_data.f_args.timeout = -1;
+	global_data.f_args.linger = -1;
+	global_data.f_args.pattern[0] = '\0';
+	global_data.f_args.ttl = -1;
+
+	while ((opt = getopt(argc, argv, "vfq?Vc:i:w:W:p:")) != -1) {
+        switch (opt) {
+            case 'v':
+                global_data.f_args.v_flag = true;
+                break;
+            case 'f':
+                global_data.f_args.f_flag = true;
+                break;
+            case 'q':
+                global_data.f_args.q_flag = true;
+                break;
+            case '?':
+                print_help();
+				exit(0);
+            case 'V':
+				print_version();
+				exit(0);
+            case 'c':
+                global_data.f_args.count = atoi(optarg);
+                break;
+            case 'i':
+                global_data.f_args.interval = atoi(optarg);
+                break;
+            case 'w':
+                global_data.f_args.timeout = atoi(optarg);
+                break;
+            case 'W':
+                global_data.f_args.linger = atoi(optarg);
+                break;
+            case 'p':
+                strncpy(global_data.f_args.pattern, optarg, sizeof(global_data.f_args.pattern) - 1);
+                global_data.f_args.pattern[sizeof(global_data.f_args.pattern) - 1] = '\0';
+                break;
+            default:
+                fprintf(stderr, "Unknown option: -%c\n", opt);
+                return -1;
+        }
+    }
+
+	return 0;
+}
+
+int check_args(int argc, char **argv) {
+	memset(&global_data, 0, sizeof(t_data));
+	(void) argc;
+	(void) argv;
+
+	if (parse_arguments(argc, argv) != 0) {
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -227,7 +307,7 @@ int check_available_interface(void) {
 
 int main(int argc, char **argv) {
 	if (getuid() != 0) {
-		fprintf(stderr,"Root privileges are required to run ft_malcolm.\n");
+		fprintf(stderr,"Root privileges are required to run ft_ping.\n");
 		return 1;
 	}
 
@@ -239,11 +319,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error: Could not find a free network interface.\n");
         return 1;
 	}
-
-
-	print_usage();
-
-	//simple_ping();
 
 	return 0;
 }
