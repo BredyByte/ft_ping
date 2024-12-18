@@ -218,7 +218,6 @@ void test_getaddrinfo(void) {
 int check_args(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
-
 	return 0;
 }
 
@@ -242,7 +241,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	print_version();
+	print_usage();
 
 	//simple_ping();
 
@@ -282,7 +281,29 @@ doubts:
 */
 
 /*
-For bonus: --ttl, -w, -W, -f, -l, -p, -c, -q, i
+All possible argument frags:
+	* -v			/ --verbode
+	* -f			/ --flood
+	* -q			/ --quiet
+	* -?			/ --help
+	* -V			/ --version
+	* -c NUMBER		/ --count=NUMBER
+	* -i NUMBER 	/ --interval=NUMBER
+	* -w N			/ --timeout=N
+	* -W N			/ --linger=N
+	* -p PATTERN	/ --pattern=PATTERN
+	* --ttl=N
+*/
+
+
+/*
+Test cases:
+	-q -v: prints like -v (PING 8.8.8.8 (8.8.8.8): 56 data bytes, id 0x503a = 20538) but doesn't print more info
+	-c 1 --count 2: the second one overwrites the value of packet limit
+	-V --usage --help -?: always wins the first one, prints its message and stop execution
+	-c 1 --count 10 -f: flood will be ignored, as -c puts limit on packets be send
+	-f: works in quiet mode, prints just the first message and on ctrl+c the workflow overview
+
 */
 
 /*

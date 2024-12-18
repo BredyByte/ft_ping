@@ -16,7 +16,6 @@ void print_help() {
 	printf(" Options valid for --echo requests:\n");
 	printf("\n");
 	printf("  -f, --flood\t\t\tflood ping (root only)\n");
-	printf("  -l, --preload=NUMBER\t\tsend NUMBER packets as fast as possible before \n\t\t\t\tfalling into normal mode of behavior (root only)\n");
 	printf("  -p, --pattern=PATTERN\t\tfill ICMP packet with given pattern (hex)\n");
 	printf("  -q, --quiet\t\t\tquiet output\n");
 	printf("  -?, --help\t\t\tgive this help list\n");
@@ -30,13 +29,15 @@ void print_help() {
 }
 
 void print_usage(void) {
-	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N] [-l NUMBER]\n");
+	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N]\n");
 	printf("\t\t");
 	printf("[-p PATTERN] [--count=NUMBER] [--interval=NUMBER] [--ttl=N]\n");
 	printf("\t\t");
-	printf("[--verbose] [--timeout=N] [--linger=N] [--preload=NUMBER]\n");
+	printf("[--verbose] [--timeout=N] [--linger=N] [--flood] [--quiet] \n");
 	printf("\t\t");
-	printf("[--quiet] [--help] [--usage] [--version]\n");
+	printf("[--pattern=PATTERN] [--help] [--usage]\n");
+	printf("\t\t");
+	printf("[--version]\n");
 	printf("\t\t");
 	printf("HOST ...");
 }
