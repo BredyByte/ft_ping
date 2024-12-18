@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	print_help();
+	print_usage();
 
 	//simple_ping();
 
@@ -282,7 +282,7 @@ doubts:
 */
 
 /*
-For bonus: --ttl, -w, -W, -f, -l, -p
+For bonus: --ttl, -w, -W, -f, -l, -p, -c, -q, i
 */
 
 /*

@@ -27,7 +27,7 @@ extern t_data global_data;
 
 // Output function
 void print_help(void);
-
+void print_usage(void);
 
 void simple_ping(void);
 

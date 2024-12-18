@@ -6,6 +6,8 @@ void print_help() {
 	printf("\n");
 	printf(" Options valid for all request types:\n");
 	printf("\n");
+	printf("  -c, --count=NUMBER\t\tstop after sending NUMBER packets\n");
+	printf("  -i, --interval=NUMBER\t\twait NUMBER seconds between sending each packet\n");
 	printf("      --ttl=N\t\t\tspecify N as time-to-live\n");
 	printf("  -v, --verbose\t\t\tverbose output\n");
 	printf("  -w, --timeout=N\t\tstop after N seconds\n");
@@ -16,6 +18,7 @@ void print_help() {
 	printf("  -f, --flood\t\t\tflood ping (root only)\n");
 	printf("  -l, --preload=NUMBER\t\tsend NUMBER packets as fast as possible before \n\t\t\t\tfalling into normal mode of behavior (root only)\n");
 	printf("  -p, --pattern=PATTERN\t\tfill ICMP packet with given pattern (hex)\n");
+	printf("  -q, --quiet\t\t\tquiet output\n");
 	printf("  -?, --help\t\t\tgive this help list\n");
 	printf("      --usage\t\t\tgive a short usage message\n");
 	printf("  -V, --version\t\t\tprint program version\n");
@@ -24,4 +27,16 @@ void print_help() {
 	printf("Options marked with (root only) are available only to superuser.\n");
 	printf("\n");
 	printf("Report bugs to <bug-is-yourlife@foo.org>.");
+}
+
+void print_usage(void) {
+	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N] [-l NUMBER]\n");
+	printf("\t\t");
+	printf("[-p PATTERN] [--count=NUMBER] [--interval=NUMBER] [--ttl=N]\n");
+	printf("\t\t");
+	printf("[--verbose] [--timeout=N] [--linger=N] [--preload=NUMBER]\n");
+	printf("\t\t");
+	printf("[--quiet] [--help] [--usage] [--version]\n");
+	printf("\t\t");
+	printf("HOST ...");
 }
