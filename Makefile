@@ -13,6 +13,8 @@ REMOVE = rm -rf
 
 SRC =	\
 		main.c \
+		simple_ping.c \
+		output.c \
 
 OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))
 

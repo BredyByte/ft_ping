@@ -1,5 +1,8 @@
 #include "ping.h"
 
+
+t_data global_data;
+
 /*
 Ethernet header - 14 bytes:
 	- Destination MAC 6 bytes
@@ -145,98 +148,6 @@ Implement SHA-256 for data integrity ???:
 */
 
 
-
-unsigned short checksum(void *b, int len) {
-    unsigned short *buf = b;   // Treat the data as an array of 16-bit words
-    unsigned int sum = 0;      // Initialize the checksum to 0
-    unsigned short result;
-
-    // Add up 16-bit words one by one
-    for (sum = 0; len > 1; len -= 2)
-        sum += *buf++;
-	/*
-	Ex: We have this data 0x1234  0x5678  0x9ABC
-	First itter:
-		*buf = 0x1234
-		sum += 0x1234 -> sum = 0x1234
-
-	Second itter:
-		*buf = 0x5678
-		sum += 0x5678 -> sum = 0x1234 + 0x5678 = 0x68AC
-
-	Third itter:
-		*buf = 0x9ABC
-		sum += 0x9ABC -> sum = 0x68AC + 0x9ABC = 0x10468
-	*/
-
-    // If there's a leftover byte, add it as a 16-bit word (padding with 0)
-    if (len == 1)
-        sum += *(unsigned char *)buf;
-
-    // Fold the sum to fit into 16 bits by adding the carry bits to the lower 16 bits
-    sum = (sum >> 16) + (sum & 0xFFFF); // Add higher 16 bits to lower 16 bits
-	/*
-	Ex:
-	sum >> 16 - Extracting the higher 16 bits of the sum
-		if sum = 0x123456, so sum >> 16 = 0x12.
-		in  binary format:	sum = 0x123456 =	0001 0010 0011 0100 0101 0110
-		result:				sum >> 16 = 		0000 0000 0001 0010
-
-	sum & 0xFFFF - Extracting the lower 16 bits of the sum
-	if sum = 0x123456, so sum & 0xFFFF = 0x3456
-	in binary format:	sum =		0001 0010 0011 0100 0101 0110
-	mask:				0xFFFF =	1111 1111 1111 1111
-	res =							0000 0000 0011 0100 0101 0110
-
-	0x12 + 0x3456= 0x3468.
-	*/
-
-    sum += (sum >> 16);                 // Add carry if any remains
-
-    // Invert the bits to finalize the checksum
-	/*
-	Ex:
-	if	sum = 0x123456 =	0001 0010 0011 0100 0101 0110
-		res = 				1110 1101 1100 1011 1010 1001
-	*/
-    result = ~sum;
-    return result;
-}
-
-void test_icmp(void) {
-	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // RAW-socket
-    if (sockfd < 0) {
-        perror("Socket creation failed");
-        exit(1);
-    }
-
-    struct sockaddr_in dest_addr;
-    memset(&dest_addr, 0, sizeof(dest_addr));
-    dest_addr.sin_family = AF_INET;
-    inet_pton(AF_INET, "8.8.8.8", &dest_addr.sin_addr); // IP-adddr Google DNS
-
-    struct icmphdr icmp_hdr;
-    icmp_hdr.type = ICMP_ECHO;
-    icmp_hdr.code = 0;
-    icmp_hdr.un.echo.id = htons(getpid());
-    icmp_hdr.un.echo.sequence = htons(1);
-    icmp_hdr.checksum = 0;
-
-    // Calculate checksum
-    icmp_hdr.checksum = checksum(&icmp_hdr, sizeof(icmp_hdr));
-
-    // Dend ICMP-packet
-    if (sendto(sockfd, &icmp_hdr, sizeof(icmp_hdr), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) <= 0) {
-        perror("Send failed");
-        close(sockfd);
-		exit(1);
-    }
-
-    printf("ICMP Echo Request sent to 8.8.8.8\n");
-
-    close(sockfd);
-}
-
 int lookup_host(const char *host) {
 	struct addrinfo hints, *tmpres, *result;
 	int errcode;
@@ -304,20 +215,47 @@ void test_getaddrinfo(void) {
 
 }
 
-int main() {
-	test_getaddrinfo();
+int check_args(int argc, char **argv) {
+	(void) argc;
+	(void) argv;
+
+	return 0;
+}
+
+int check_available_interface(void) {
+	return 0;
+}
+
+int main(int argc, char **argv) {
+	if (getuid() != 0) {
+		fprintf(stderr,"Root privileges are required to run ft_malcolm.\n");
+		return 1;
+	}
+
+	if (check_args(argc, argv) != 0) {
+		return 1;
+	}
+
+	if (check_available_interface() != 0) {
+		fprintf(stderr, "Error: Could not find a free network interface.\n");
+        return 1;
+	}
+
+
+	print_help();
+
+	//simple_ping();
 
 	return 0;
 }
 
 /*
 todo:
-	- WireShark check icmp and ip packet for ping-request
-	- Analize ICMP packet structure and document it	✅
-	- Analize IP packet structure and document it	✅
-	- Resolve doubts about the subject.				✅
-	- -v mode, what id 0x059c = 1436 means ?????
-	- Ping behaviour
+	- resolve arguments
+		* check addr ipv4
+		* if !ipv4 check hostaname resolution
+		*
+
 */
 
 /*
@@ -344,9 +282,7 @@ doubts:
 */
 
 /*
-For bonus:
-	-c stop after <count> replies
-	-t define time to live - ttl
+For bonus: --ttl, -w, -W, -f, -l, -p
 */
 
 /*
