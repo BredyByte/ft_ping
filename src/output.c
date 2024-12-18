@@ -40,3 +40,11 @@ void print_usage(void) {
 	printf("\t\t");
 	printf("HOST ...");
 }
+
+void print_version(void) {
+	printf("ft_ping (42 École project) 1.0\n");
+	printf("Copyright (C) 2024 Free Software Foundation, Inc.\n");
+	printf("This is free software: you are free to change and redistribute it.\n");
+	printf("There is NO WARRANTY, to the extent permitted by law.\n\n");
+	printf("Written by Davyd Bredykhin.");
+}

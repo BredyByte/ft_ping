@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	print_usage();
+	print_version();
 
 	//simple_ping();
 
