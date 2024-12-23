@@ -22,13 +22,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-int parse_arguments(int argc, char **argv) {
-	(void) argc;
-	(void) argv;
-
-	int opt;
-	int long_index = 0;
-
+void get_def_vals_struct(void) {
 	global_data.f_args.v_flag = false;
 	global_data.f_args.f_flag = false;
 	global_data.f_args.q_flag = false;
@@ -38,6 +32,16 @@ int parse_arguments(int argc, char **argv) {
 	global_data.f_args.linger = -1;
 	global_data.f_args.pattern[0] = '\0';
 	global_data.f_args.ttl = -1;
+}
+
+int parse_arguments(int argc, char **argv) {
+	(void) argc;
+	(void) argv;
+
+	int opt;
+	int long_index = 0;
+
+	get_def_vals_struct();
 
 	while ((opt = getopt_long(argc, argv, "vfq?Vc:i:w:W:p:", long_options, &long_index)) != -1) {
         switch (opt) {
@@ -87,6 +91,14 @@ int parse_arguments(int argc, char **argv) {
                 return -1;
         }
     }
+
+	if (optind < argc) {
+		strncpy(global_data.dest_ip_str, argv[optind], INET_ADDRSTRLEN - 1);
+		global_data.dest_ip_str[INET_ADDRSTRLEN - 1] = '\0';
+	} else {
+		fprintf(stderr, "ft_ping: missing host operand\n");
+		return -1;
+	}
 
 	return 0;
 }

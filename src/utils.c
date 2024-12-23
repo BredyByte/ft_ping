@@ -41,7 +41,7 @@ void print_help(void) {
 	printf("\n");
 	printf("Options marked with (root only) are available only to superuser.\n");
 	printf("\n");
-	printf("Report bugs to <bug-is-yourlife@foo.org>.");
+	printf("Report bugs to <bug-is-yourlife@foo.org>.\n");
 }
 
 void print_usage(void) {
