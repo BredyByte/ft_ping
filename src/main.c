@@ -231,11 +231,42 @@ void test_getaddrinfo(void) {
 //     int		ttl;           	// --ttl
 // } t_args;
 
+static struct option long_options[] = {
+    {"verbose", no_argument, NULL, 'v'},      	// --verbose -> 'v'
+    {"flood", no_argument, NULL, 'f'},        	// --flood -> 'f'
+    {"quiet", no_argument, NULL, 'q'},        	// --quiet -> 'q'
+    {"help", no_argument, NULL, '?'},         	// --help -> '?'
+    {"version", no_argument, NULL, 'V'},      	// --version -> 'V'
+    {"count", required_argument, NULL, 'c'},  	// --count=NUMBER -> 'c'
+    {"interval", required_argument, NULL, 'i'}, // --interval=NUMBER -> 'i'
+    {"timeout", required_argument, NULL, 'w'},  // --timeout=N -> 'w'
+    {"linger", required_argument, NULL, 'W'},   // --linger=N -> 'W'
+    {"pattern", required_argument, NULL, 'p'},  // --pattern=PATTERN -> 'p'
+    {"ttl", required_argument, NULL, 0},        // --ttl=N -> -
+    {"usage", no_argument, NULL, 0},        	// --usage -> -
+    {0, 0, 0, 0}
+};
+
+int valid_hex() {
+	char *pattern_ptr = global_data.f_args.pattern;
+
+	while (*pattern_ptr != '\0') {
+		if (isxdigit(*pattern_ptr) == 0) {
+			fprintf(stderr, "ping: error in pattern near %s", pattern_ptr);
+			return -1;
+		}
+		pattern_ptr++;
+	}
+
+	return 0;
+}
+
 int parse_arguments(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
 
 	int opt;
+	int long_index = 0;
 
 	global_data.f_args.v_flag = false;
 	global_data.f_args.f_flag = false;
@@ -247,7 +278,7 @@ int parse_arguments(int argc, char **argv) {
 	global_data.f_args.pattern[0] = '\0';
 	global_data.f_args.ttl = -1;
 
-	while ((opt = getopt(argc, argv, "vfq?Vc:i:w:W:p:")) != -1) {
+	while ((opt = getopt_long(argc, argv, "vfq?Vc:i:w:W:p:", long_options, &long_index)) != -1) {
         switch (opt) {
             case 'v':
                 global_data.f_args.v_flag = true;
@@ -279,6 +310,17 @@ int parse_arguments(int argc, char **argv) {
             case 'p':
                 strncpy(global_data.f_args.pattern, optarg, sizeof(global_data.f_args.pattern) - 1);
                 global_data.f_args.pattern[sizeof(global_data.f_args.pattern) - 1] = '\0';
+				if (valid_hex() != 0) {
+					return -1;
+				}
+                break;
+			case 0: // For args without short version
+                if (strcmp("ttl", long_options[long_index].name) == 0) {
+                    global_data.f_args.ttl = atoi(optarg);
+                } else if (strcmp("usage", long_options[long_index].name) == 0) {
+					print_usage();
+					exit(0);
+				}
                 break;
             default:
                 fprintf(stderr, "Unknown option: -%c\n", opt);
@@ -306,10 +348,10 @@ int check_available_interface(void) {
 }
 
 int main(int argc, char **argv) {
-	if (getuid() != 0) {
-		fprintf(stderr,"Root privileges are required to run ft_ping.\n");
-		return 1;
-	}
+	// if (getuid() != 0) {
+	// 	fprintf(stderr,"Root privileges are required to run ft_ping.\n");
+	// 	return 1;
+	// }
 
 	if (check_args(argc, argv) != 0) {
 		return 1;
@@ -319,6 +361,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error: Could not find a free network interface.\n");
         return 1;
 	}
+
+	print_args();
 
 	return 0;
 }
@@ -361,13 +405,14 @@ All possible argument frags:
 	* -f			/ --flood
 	* -q			/ --quiet
 	* -?			/ --help
+	* -				/ --usage
 	* -V			/ --version
 	* -c NUMBER		/ --count=NUMBER
 	* -i NUMBER 	/ --interval=NUMBER
 	* -w N			/ --timeout=N
 	* -W N			/ --linger=N
 	* -p PATTERN	/ --pattern=PATTERN
-	* --ttl=N
+	* -				/ --ttl=N
 */
 
 

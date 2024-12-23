@@ -15,19 +15,26 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <bits/getopt_core.h>
+#include <getopt.h>
 
 #define INET4_LEN 4
+/*
+    ICMP payload = 56 bytes.
+    56 + 56 + 1 = 113.
+    Each hex char(1 byte) is 1 octet(4 bits).
+*/
+#define PATTERN_SIZE 113
 
 typedef struct s_args {
-    bool	v_flag;       	// --verbose (-v)
-    bool	f_flag;       	// --flood (-f)
-    bool	q_flag;       	// --quiet (-q)
-    int		count;         	// --count (-c)
-    int		interval;      	// --interval (-i)
-    int		timeout;       	// --timeout (-w)
-    int		linger;        	// --linger (-W)
-    char	pattern[256];	// --pattern (-p)
-    int		ttl;           	// --ttl
+    bool	v_flag;       	        // --verbose (-v)
+    bool	f_flag;       	        // --flood (-f)
+    bool	q_flag;       	        // --quiet (-q)
+    int		count;         	        // --count (-c)
+    int		interval;      	        // --interval (-i)
+    int		timeout;      	        // --timeout (-w)
+    int		linger;        	        // --linger (-W)
+    char	pattern[PATTERN_SIZE];	// --pattern (-p)
+    int		ttl;           	        // --ttl
 } t_args;
 
 typedef struct s_data {
@@ -42,6 +49,7 @@ extern t_data global_data;
 void print_help(void);
 void print_usage(void);
 void print_version(void);
+void print_args(void);
 
 void simple_ping(void);
 

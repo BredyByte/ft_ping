@@ -29,15 +29,13 @@ void print_help() {
 }
 
 void print_usage(void) {
-	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N]\n");
+	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N] [-p PATTERN]\n");
 	printf("\t\t");
-	printf("[-p PATTERN] [--count=NUMBER] [--interval=NUMBER] [--ttl=N]\n");
+	printf("[--count=NUMBER] [--interval=NUMBER] [--ttl=N] [--verbose]\n");
 	printf("\t\t");
-	printf("[--verbose] [--timeout=N] [--linger=N] [--flood] [--quiet] \n");
+	printf("[--timeout=N] [--linger=N] [--flood] [--pattern=PATTERN]\n");
 	printf("\t\t");
-	printf("[--pattern=PATTERN] [--help] [--usage]\n");
-	printf("\t\t");
-	printf("[--version]\n");
+	printf("[--quiet] [--help] [--usage] [--version]\n");
 	printf("\t\t");
 	printf("HOST ...");
 }
@@ -48,4 +46,18 @@ void print_version(void) {
 	printf("This is free software: you are free to change and redistribute it.\n");
 	printf("There is NO WARRANTY, to the extent permitted by law.\n\n");
 	printf("Written by Davyd Bredykhin.");
+}
+
+void print_args(void) {
+	printf("Program arguments:\n");
+	printf(" Verbose:\t%s\n", global_data.f_args.v_flag ? "True" : "False");
+	printf(" Flood:\t\t%s\n", global_data.f_args.f_flag ? "True" : "False");
+	printf(" Quiet:\t\t%s\n", global_data.f_args.q_flag ? "True" : "False");
+	printf(" Count:\t\t%d\n", global_data.f_args.count);
+	printf(" Interval:\t%d\n", global_data.f_args.interval);
+	printf(" Timeout:\t%d\n", global_data.f_args.timeout);
+	printf(" Linger:\t%d\n", global_data.f_args.linger);
+	printf(" Pattern:\t%s", global_data.f_args.pattern[0] == '\0' ? "Empty" : global_data.f_args.pattern);
+	printf("\n");
+	printf(" ttl:\t\t%d\n", global_data.f_args.ttl);
 }
