@@ -1,6 +1,22 @@
-#include "ping.h"
+#include "globals.h"
+#include <stdio.h>
+#include <ctype.h>
 
-void print_help() {
+int valid_hex(void) {
+	char *pattern_ptr = global_data.f_args.pattern;
+
+	while (*pattern_ptr != '\0') {
+		if (isxdigit(*pattern_ptr) == 0) {
+			fprintf(stderr, "ping: error in pattern near %s", pattern_ptr);
+			return -1;
+		}
+		pattern_ptr++;
+	}
+
+	return 0;
+}
+
+void print_help(void) {
     printf("Usage: ft_ping [OPTION...] HOST ...\n");
 	printf("Send ICMP ECHO_REQUEST packets to network hosts.\n");
 	printf("\n");

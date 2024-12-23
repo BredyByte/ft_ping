@@ -1,4 +1,13 @@
-#include "ping.h"
+#include "globals.h"
+#include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
+#include <netinet/ip.h>			// Def. struct for IP packet header
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 unsigned short checksum(void *b, int len) {
     unsigned short *buf = b;
@@ -14,12 +23,8 @@ unsigned short checksum(void *b, int len) {
 		*buf = 0x1234
 		sum += 0x1234 -> sum = 0x1234
 
-	Second itter:
-		*buf = 0x5678
-		sum += 0x5678 -> sum = 0x1234 + 0x5678 = 0x68AC
+	Second itter:#include <netinet/in.h>
 
-	Third itter:
-		*buf = 0x9ABC
 		sum += 0x9ABC -> sum = 0x68AC + 0x9ABC = 0x10468
 	*/
 
@@ -61,7 +66,7 @@ void simple_ping(void) {
 	int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (sock < 0) {
         perror("Socket creation failed");
-        exit (1);
+        exit(1);
     }
 
 	struct sockaddr_in dest;
