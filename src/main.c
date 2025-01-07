@@ -172,13 +172,9 @@ int main(int argc, char **argv) {
 	// 	return 1;
 	// }
 
-	if (check_args(argc, argv) != 0)
-		return 1;
+	check_args(argc, argv);
 
-	if (check_available_interface() != 0) {
-		fprintf(stderr, "Error: Could not find a free network interface.\n");
-        return 1;
-	}
+	check_available_interface();
 
 	print_args();
 
