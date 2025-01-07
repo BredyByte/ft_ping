@@ -23,7 +23,8 @@ static struct option long_options[] = {
 };
 
 void get_def_vals_struct(void) {
-	global_data.f_args.v_flag = false;
+    memset(&global_data, 0, sizeof(t_data));
+    global_data.f_args.v_flag = false;
 	global_data.f_args.f_flag = false;
 	global_data.f_args.q_flag = false;
 	global_data.f_args.count = -1;
@@ -57,7 +58,7 @@ void handle_question_mark_workaround(int argc, char **argv) {
 
 }
 
-int parse_arguments(int argc, char **argv) {
+void parse_arguments(int argc, char **argv) {
 	int opt;
 	int long_index = 0;
 
@@ -78,10 +79,10 @@ int parse_arguments(int argc, char **argv) {
                 break;
             case '?':
                 fprintf(stderr, "Try \'./ft_ping --help\' or \'./ft_ping --usage\' for more information.\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             case 'V':
 				print_version();
-				exit(0);
+				exit(EXIT_SUCCESS);
             case 'c':
                 global_data.f_args.count = atoi(optarg);
                 break;
@@ -98,44 +99,37 @@ int parse_arguments(int argc, char **argv) {
                 strncpy(global_data.f_args.pattern, optarg, sizeof(global_data.f_args.pattern) - 1);
                 global_data.f_args.pattern[sizeof(global_data.f_args.pattern) - 1] = '\0';
 				if (valid_hex() != 0)
-					exit(1);
+					exit(EXIT_FAILURE);
                 break;
 			case 0:
                 if (strcmp("ttl", long_options[long_index].name) == 0) {
                     global_data.f_args.ttl = atoi(optarg);
                 } else if (strcmp("usage", long_options[long_index].name) == 0) {
 					print_usage();
-					exit(0);
+					exit(EXIT_SUCCESS);
 				} else if (strcmp ("help", long_options[long_index].name) == 0) {
                     print_help();
-                    exit(0);
+                    exit(EXIT_SUCCESS);
                 }
                 break;
             default:
                 fprintf(stderr, "Unknown option encountered.\n");
-                exit(1);
+                exit(EXIT_FAILURE);
         }
     }
 
 	if (optind < argc) {
+        printf("Host: %s\n", argv[optind]);
 		strncpy(global_data.dest_ip_str, argv[optind], INET_ADDRSTRLEN - 1);
 		global_data.dest_ip_str[INET_ADDRSTRLEN - 1] = '\0';
 	} else {
 		fprintf(stderr, "ft_ping: missing host operand\n");
         fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
 	}
-
-	return 0;
 }
 
-int check_args(int argc, char **argv) {
-	memset(&global_data, 0, sizeof(t_data));
-	(void) argc;
-	(void) argv;
-
+void check_args(int argc, char **argv) {
 	parse_arguments(argc, argv);
-
-	return 0;
 }
 
