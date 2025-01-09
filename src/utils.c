@@ -65,15 +65,21 @@ void print_version(void) {
 }
 
 void print_args(void) {
-	printf("Program arguments:\n");
-	printf(" Verbose:\t%s\n", global_data.f_args.v_flag ? "True" : "False");
-	printf(" Flood:\t\t%s\n", global_data.f_args.f_flag ? "True" : "False");
-	printf(" Quiet:\t\t%s\n", global_data.f_args.q_flag ? "True" : "False");
-	printf(" Count:\t\t%d\n", global_data.f_args.count);
-	printf(" Interval:\t%d\n", global_data.f_args.interval);
-	printf(" Timeout:\t%d\n", global_data.f_args.timeout);
-	printf(" Linger:\t%d\n", global_data.f_args.linger);
-	printf(" Pattern:\t%s", global_data.f_args.pattern[0] == '\0' ? "Empty" : global_data.f_args.pattern);
+	char ipinput[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, global_data.dest_ip, ipinput, INET_ADDRSTRLEN);
+
+	printf("Program's parsed arguments:\n");
+	printf("	Dest.host (str)\t%s\n", global_data.dest_host);
+	printf("	Dest.IP (bin)\t%s\n", ipinput);
 	printf("\n");
-	printf(" ttl:\t\t%d\n", global_data.f_args.ttl);
+	printf("	Verbose:\t%s\n", global_data.f_args.v_flag ? "True" : "False");
+	printf("	Flood:\t\t%s\n", global_data.f_args.f_flag ? "True" : "False");
+	printf("	Quiet:\t\t%s\n", global_data.f_args.q_flag ? "True" : "False");
+	printf("	Count:\t\t%d\n", global_data.f_args.count);
+	printf("	Interval:\t%d\n", global_data.f_args.interval);
+	printf("	Timeout:\t%d\n", global_data.f_args.timeout);
+	printf("	Linger:\t\t%d\n", global_data.f_args.linger);
+	printf("	Pattern:\t%s", global_data.f_args.pattern[0] == '\0' ? "Empty" : global_data.f_args.pattern);
+	printf("\n");
+	printf("	ttl:\t\t%d\n", global_data.f_args.ttl);
 }

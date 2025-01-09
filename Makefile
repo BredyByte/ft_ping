@@ -7,7 +7,7 @@ INC_PATH = inc
 HEADERS = -I ./$(INC_PATH)
 
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c99 -g
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -g
 
 REMOVE = rm -rf
 
@@ -15,7 +15,8 @@ SRC =	main.c \
 		utils.c \
 		arguments.c \
 		icmp.c \
-		interface.c
+		interface.c \
+		ip_resolution.c \
 
 OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))
 

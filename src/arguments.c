@@ -1,3 +1,4 @@
+#include "ip_resolution.h"
 #include "globals.h"
 #include "utils.h"
 #include <bits/getopt_core.h>
@@ -24,6 +25,8 @@ static struct option long_options[] = {
 
 void get_def_vals_struct(void) {
     memset(&global_data, 0, sizeof(t_data));
+    memset(&global_data.dest_host, 0, sizeof(uint8_t));
+    global_data.dest_host = NULL;
     global_data.f_args.v_flag = false;
 	global_data.f_args.f_flag = false;
 	global_data.f_args.q_flag = false;
@@ -118,18 +121,16 @@ void parse_arguments(int argc, char **argv) {
         }
     }
 
-	if (optind < argc) {
-        printf("Host: %s\n", argv[optind]);
-		strncpy(global_data.dest_ip_str, argv[optind], INET_ADDRSTRLEN - 1);
-		global_data.dest_ip_str[INET_ADDRSTRLEN - 1] = '\0';
-	} else {
-		fprintf(stderr, "ft_ping: missing host operand\n");
+	if (optind >= argc) {
+        fprintf(stderr, "ft_ping: missing host operand\n");
         fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
         exit(EXIT_FAILURE);
-	}
+    }
 }
 
 void check_args(int argc, char **argv) {
 	parse_arguments(argc, argv);
+
+    ip_resolution(argv[optind]);
 }
 
