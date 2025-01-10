@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <limits.h>
 
 static struct option long_options[] = {
     {"verbose", no_argument, NULL, 'v'},      	// --verbose -> 'v'
@@ -23,7 +25,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-void get_def_vals_struct(void) {
+static void get_def_vals_struct(void) {
     memset(&global_data, 0, sizeof(t_data));
     memset(&global_data.dest_host, 0, sizeof(uint8_t));
     global_data.dest_host = NULL;
@@ -38,7 +40,7 @@ void get_def_vals_struct(void) {
 	global_data.f_args.ttl = -1;
 }
 
-void handle_question_mark_workaround(int argc, char **argv) {
+static void handle_question_mark_workaround(int argc, char **argv) {
     if (argc < 2)
         return;
 
@@ -61,7 +63,39 @@ void handle_question_mark_workaround(int argc, char **argv) {
 
 }
 
-void parse_arguments(int argc, char **argv) {
+static int check_arg_valid_int(const char *str) {
+    int	res = 0;
+	int	sign = 1;
+    char *ptr = (char *)str;
+
+   while (isspace(*ptr))
+		ptr++;
+	if (*ptr == '-') {
+		sign = -1;
+        ptr++;
+    }
+	while (*ptr != '\0') {
+        if (*ptr >= '0' && *ptr <= '9') {
+            res = res * 10 + (*ptr++ - '0');
+        } else {
+            fprintf(stderr, "ft_ping: invalid value (`%s' near `%s')\n", str, ptr);
+            exit(EXIT_FAILURE);
+        }
+    }
+	return (res * sign);
+}
+
+static void exit_non_acceptable_value(int num) {
+    if (num == 0) {
+        fprintf(stderr, "ft_ping: option value too small: %s \n", optarg);
+        exit(EXIT_FAILURE);
+    } else if (num < 0) {
+        fprintf(stderr, "ft_ping: option value too big: %s \n", optarg);
+        exit(EXIT_FAILURE);
+    }
+}
+
+static void parse_arguments(int argc, char **argv) {
 	int opt;
 	int long_index = 0;
 
@@ -91,7 +125,9 @@ void parse_arguments(int argc, char **argv) {
 				print_version();
 				exit(EXIT_SUCCESS);
             case 'c':
-                global_data.f_args.count = atoi(optarg);
+                global_data.f_args.count = check_arg_valid_int(optarg);
+                if (global_data.f_args.count <= 0 )
+                    global_data.f_args.count = -1;
                 break;
             case 'i':
                 if (global_data.f_args.f_flag) {
@@ -101,10 +137,12 @@ void parse_arguments(int argc, char **argv) {
                 global_data.f_args.interval = atoi(optarg);
                 break;
             case 'w':
-                global_data.f_args.timeout = atoi(optarg);
+                global_data.f_args.timeout = check_arg_valid_int(optarg);
+                exit_non_acceptable_value(global_data.f_args.timeout);
                 break;
             case 'W':
-                global_data.f_args.linger = atoi(optarg);
+                global_data.f_args.linger = check_arg_valid_int(optarg);
+                exit_non_acceptable_value(global_data.f_args.linger);
                 break;
             case 'p':
                 strncpy(global_data.f_args.pattern, optarg, sizeof(global_data.f_args.pattern) - 1);
@@ -114,7 +152,8 @@ void parse_arguments(int argc, char **argv) {
                 break;
 			case 0:
                 if (strcmp("ttl", long_options[long_index].name) == 0) {
-                    global_data.f_args.ttl = atoi(optarg);
+                    global_data.f_args.ttl = check_arg_valid_int(optarg);
+                    exit_non_acceptable_value(global_data.f_args.ttl);
                 } else if (strcmp("usage", long_options[long_index].name) == 0) {
 					print_usage();
 					exit(EXIT_SUCCESS);
@@ -129,16 +168,16 @@ void parse_arguments(int argc, char **argv) {
         }
     }
 
-	// if (optind >= argc) {
-    //     fprintf(stderr, "ft_ping: missing host operand\n");
-    //     fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
-    //     exit(EXIT_FAILURE);
-    // }
+	if (optind >= argc) {
+        fprintf(stderr, "ft_ping: missing host operand\n");
+        fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void check_args(int argc, char **argv) {
 	parse_arguments(argc, argv);
 
-    //ip_resolution(argv[optind]);
+    ip_resolution(argv[optind]);
 }
 
