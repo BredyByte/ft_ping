@@ -75,6 +75,10 @@ void parse_arguments(int argc, char **argv) {
                 global_data.f_args.v_flag = true;
                 break;
             case 'f':
+                if (global_data.f_args.interval) {
+                    fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
+                    exit(EXIT_FAILURE);
+                }
                 global_data.f_args.f_flag = true;
                 break;
             case 'q':
@@ -90,6 +94,10 @@ void parse_arguments(int argc, char **argv) {
                 global_data.f_args.count = atoi(optarg);
                 break;
             case 'i':
+                if (global_data.f_args.f_flag) {
+                    fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
+                    exit(EXIT_FAILURE);
+                }
                 global_data.f_args.interval = atoi(optarg);
                 break;
             case 'w':
@@ -121,16 +129,16 @@ void parse_arguments(int argc, char **argv) {
         }
     }
 
-	if (optind >= argc) {
-        fprintf(stderr, "ft_ping: missing host operand\n");
-        fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
-        exit(EXIT_FAILURE);
-    }
+	// if (optind >= argc) {
+    //     fprintf(stderr, "ft_ping: missing host operand\n");
+    //     fprintf(stderr, "Try \'./ft_ping --help\' or \' ./ft_ping --usage\' for more information.\n");
+    //     exit(EXIT_FAILURE);
+    // }
 }
 
 void check_args(int argc, char **argv) {
 	parse_arguments(argc, argv);
 
-    ip_resolution(argv[optind]);
+    //ip_resolution(argv[optind]);
 }
 
