@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "icmp.h"
 #include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
 #include <netinet/ip.h>			// Def. struct for IP packet header
 #include <sys/socket.h>
@@ -61,38 +62,64 @@ unsigned short checksum(void *b, int len) {
     return ~sum;
 }
 
+void start_ping(void) {
+	int sock;
+    char packet[4096];
+	struct iphdr *iph = (struct iphdr *)packet;
+    struct icmphdr *icmph = (struct icmphdr *)(packet + sizeof(struct iphdr));
+    struct sockaddr_in dest;
+	int opt = 1;
 
-void simple_ping(void) {
-	int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    if (sock < 0) {
-        perror("Socket creation failed");
-        exit(1);
+	if ((sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
+        perror("socket");
+		free(global_data.dest_host);
+        exit(EXIT_FAILURE);
     }
 
-	struct sockaddr_in dest;
-    dest.sin_family = AF_INET;
-    dest.sin_addr.s_addr = inet_addr("8.8.8.8");
 
-	char packet[64];
-    memset(packet, 0, sizeof(packet));
+	// Flag for telling the system that i will manage the IP header manually.
+    if (setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
 
-	struct icmphdr *icmph = (struct icmphdr *)packet;
-    icmph->type = ICMP_ECHO;
+
+	// Fill IP header
+	memset(packet, 0, sizeof(packet));
+    iph->ihl = 5;
+    iph->version = 4;
+    iph->tos = 0;
+    iph->tot_len = htons(sizeof(struct iphdr) + sizeof(struct icmphdr));
+    iph->id = htons(54321);
+    iph->frag_off = 0x40;
+    iph->ttl = 64;
+    iph->protocol = IPPROTO_ICMP;
+    iph->saddr = inet_addr("10.12.250.207");
+    iph->daddr = inet_addr("8.8.8.8");
+
+    // checksum for ip header (not necessarily, the system can calculate it itself.)
+    iph->check = checksum((unsigned short *)packet, sizeof(struct iphdr));
+
+	// Fill ICMP header
+	icmph->type = ICMP_ECHO;
     icmph->code = 0;
     icmph->un.echo.id = htons(1234);
     icmph->un.echo.sequence = htons(1);
     icmph->checksum = 0;
+    icmph->checksum = checksum((unsigned short *)icmph, sizeof(struct icmphdr));
 
-	strcpy(packet + sizeof(struct icmphdr), "Hello ICMP!");
+	// config dest addres
+    dest.sin_family = AF_INET;
+    dest.sin_addr.s_addr = iph->daddr;
 
-	icmph->checksum = checksum(packet, sizeof(struct icmphdr) + strlen("Hello ICMP!"));
-
-	if (sendto(sock, packet, sizeof(struct icmphdr) + strlen("Hello ICMP!"), 0,
-		(struct sockaddr *)&dest, sizeof(dest)) < 0) {
-        perror("Sendto failed");
-    } else {
-        printf("ICMP packet sent to 8.8.8.8\n");
+	 if (sendto(sock, packet, ntohs(iph->tot_len), 0, (struct sockaddr *)&dest, sizeof(dest)) < 0) {
+        perror("sendto");
+        close(sock);
+		free(global_data.dest_host);
+		exit(EXIT_FAILURE);
     }
 
-    close(sock);
+	printf("ICMP Echo Request sent to 8.8.8.8\n");
+
+	close(sock);
 }

@@ -4,6 +4,7 @@
 #include "icmp.h"
 #include "interface.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 t_data global_data;
 
@@ -177,6 +178,10 @@ int main(int argc, char **argv) {
 	check_available_interface();
 
 	print_args();
+
+	start_ping();
+
+	free(global_data.dest_host);
 
 	return 0;
 }
