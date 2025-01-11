@@ -65,12 +65,15 @@ void print_version(void) {
 }
 
 void print_args(void) {
-	char ipinput[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, global_data.dest_ip, ipinput, INET_ADDRSTRLEN);
+	char dipinput[INET_ADDRSTRLEN];
+	char sipinput[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, global_data.dest_ip, dipinput, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, global_data.source_ip, sipinput, INET_ADDRSTRLEN);
 
 	printf("Program's parsed arguments:\n");
-	printf("	Dest.host (str)\t%s\n", global_data.dest_host);
-	printf("	Dest.IP (bin)\t%s\n", ipinput);
+	printf("	Dest host (str)\t%s\n", global_data.dest_host);
+	printf("	Dest IP (bin)\t%s\n", dipinput);
+	printf("	Source IP (bin)\t%s\n", sipinput);
 	printf("\n");
 	printf("	Verbose:\t%s\n", global_data.f_args.v_flag ? "True" : "False");
 	printf("	Flood:\t\t%s\n", global_data.f_args.f_flag ? "True" : "False");

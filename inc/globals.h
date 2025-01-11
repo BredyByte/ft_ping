@@ -22,7 +22,8 @@ typedef struct s_args {
 
 typedef struct s_data {
 	char	*dest_host;             // hostname in string format
-	uint8_t dest_ip[INET4_LEN];     // IPv4 addr in binary format
+	uint8_t dest_ip[INET4_LEN];     // dest IPv4 addr in binary format
+	uint8_t source_ip[INET4_LEN];   // source IPv4 addr in binary format
 	t_args  f_args;
 } t_data;
 

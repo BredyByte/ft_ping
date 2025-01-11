@@ -175,11 +175,11 @@ int main(int argc, char **argv) {
 
 	check_args(argc, argv);
 
-	check_available_interface();
+	get_available_interface();
 
 	print_args();
 
-	start_ping();
+	//start_ping();
 
 	free(global_data.dest_host);
 
