@@ -1,17 +1,17 @@
-#include "globals.h"
-#include "icmp.h"
-#include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
-#include <netinet/ip.h>			// Def. struct for IP packet header
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <time.h>
-#include <err.h>
+# include "defines.h"
+# include "icmp.h"
+# include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
+# include <netinet/ip.h>		// Def. struct for IP packet header
+# include <sys/socket.h>
+# include <sys/types.h>
+# include <stdio.h>
+# include <arpa/inet.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <string.h>
+# include <sys/time.h>
+# include <time.h>
+# include <err.h>
 
 unsigned short checksum(void *b, int len) {
     unsigned short *buf = b;

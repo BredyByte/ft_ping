@@ -13,10 +13,10 @@ REMOVE = rm -rf
 
 SRC =	main.c \
 		utils.c \
-		arguments.c \
+		args.c \
 		icmp.c \
 		interface.c \
-		ip_resolution.c \
+		ip_resolve.c \
 
 OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))
 

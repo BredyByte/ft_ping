@@ -1,12 +1,15 @@
-#include "globals.h"
+#include "defines.h"
 #include <stdio.h>
 #include <ctype.h>
 
-int valid_hex(void) {
+int	is_valid_hex(void)
+{
 	char *pattern_ptr = global_data.f_args.pattern;
 
-	while (*pattern_ptr != '\0') {
-		if (isxdigit(*pattern_ptr) == 0) {
+	while (*pattern_ptr != '\0')
+	{
+		if (isxdigit(*pattern_ptr) == 0)
+		{
 			fprintf(stderr, "ping: error in pattern near %s", pattern_ptr);
 			return -1;
 		}
@@ -16,7 +19,8 @@ int valid_hex(void) {
 	return 0;
 }
 
-void print_help(void) {
+void	print_help(void)
+{
     printf("Usage: ft_ping [OPTION...] HOST ...\n");
 	printf("Send ICMP ECHO_REQUEST packets to network hosts.\n");
 	printf("\n");
@@ -44,7 +48,8 @@ void print_help(void) {
 	printf("Report bugs to <bug-is-yourlife@foo.org>.\n");
 }
 
-void print_usage(void) {
+void	print_usage(void)
+{
 	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N] [-p PATTERN]\n");
 	printf("\t\t");
 	printf("[--count=NUMBER] [--interval=NUMBER] [--ttl=N] [--verbose]\n");
@@ -56,7 +61,8 @@ void print_usage(void) {
 	printf("HOST ...");
 }
 
-void print_version(void) {
+void	print_version(void)
+{
 	printf("ft_ping (42 École project) 1.0\n");
 	printf("Copyright (C) 2024 Free Software Foundation, Inc.\n");
 	printf("This is free software: you are free to change and redistribute it.\n");
@@ -64,7 +70,8 @@ void print_version(void) {
 	printf("Written by Davyd Bredykhin.");
 }
 
-void print_args(void) {
+void	print_args(void)
+{
 	char dipinput[INET_ADDRSTRLEN];
 	char sipinput[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, global_data.dest_ip, dipinput, INET_ADDRSTRLEN);
