@@ -99,6 +99,12 @@ static void recv_icmp_response(int sock)
     socklen_t           sender_len = sizeof(sender);
     ssize_t             bytes_received;
 
+    struct iphdr        *iph;
+    int                 iph_len;
+    struct icmphdr      *icmph;
+    struct timeval      send_time, recv_time;
+    double rtt;
+
     bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
                     (struct sockaddr *)&sender, &sender_len);
 
@@ -108,7 +114,32 @@ static void recv_icmp_response(int sock)
         return;
     }
 
-    printf("ICMP Echo Reply received from %s\n", inet_ntoa(sender.sin_addr));
+    gettimeofday(&recv_time, NULL);
+
+    iph = (struct iphdr *)buffer;
+    iph_len = iph->ihl * 4;
+
+    icmph = (struct icmphdr *)(buffer + iph_len);
+
+    if (icmph->type == ICMP_ECHOREPLY)
+    {
+
+        memcpy(&send_time, buffer + iph_len + sizeof(struct icmphdr), sizeof(struct timeval));
+
+        rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
+        rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
+
+        printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+               inet_ntoa(sender.sin_addr),
+               ntohs(icmph->un.echo.sequence),
+               iph->ttl,
+               rtt);
+    }
+    else
+    {
+        printf("Received non-echo reply ICMP packet (type=%d, code=%d)\n",
+               icmph->type, icmph->code);
+    }
 }
 
 void    init_ping(void)
@@ -124,11 +155,11 @@ void    init_ping(void)
 
     prep_iphdr(packet, iph);
 
-    prep_icmphdr(packet, icmph);
-
     // config dest addres
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = iph->daddr;
+
+    prep_icmphdr(packet, icmph);
 
 	if (sendto(g_data.sock, packet, ntohs(iph->tot_len), 0,
         (struct sockaddr *)&dest, sizeof(dest)) < 0)
