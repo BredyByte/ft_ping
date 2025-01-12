@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
 
 	print_args();
 
-	//start_ping();
+	start_ping();
 
 	free(global_data.dest_host);
 
