@@ -28,18 +28,21 @@ static struct option long_options[] =
 
 static void defs_global_strust(void)
 {
-    memset(&global_data, 0, sizeof(t_data));
-    memset(&global_data.dest_host, 0, sizeof(uint8_t));
-    global_data.dest_host = NULL;
-    global_data.f_args.v_flag = false;
-	global_data.f_args.f_flag = false;
-	global_data.f_args.q_flag = false;
-	global_data.f_args.count = -1;
-	global_data.f_args.interval = -1;
-	global_data.f_args.timeout = -1;
-	global_data.f_args.linger = -1;
-	global_data.f_args.pattern[0] = '\0';
-	global_data.f_args.ttl = -1;
+    memset(&g_data, 0, sizeof(t_ping));
+    memset(&g_data.dest_host, 0, sizeof(uint8_t));
+    g_data.dest_host = NULL;
+    g_data.sequence = 0;
+    g_data.sock = 0;
+
+    g_data.f_args.v_flag = false;
+	g_data.f_args.f_flag = false;
+	g_data.f_args.q_flag = false;
+	g_data.f_args.count = -1;
+	g_data.f_args.interval = -1;
+	g_data.f_args.timeout = -1;
+	g_data.f_args.linger = -1;
+	g_data.f_args.pattern[0] = '\0';
+	g_data.f_args.ttl = -1;
 }
 
 static void handle_quest_mark(int argc, char **argv)
@@ -121,18 +124,18 @@ static void args_options(int argc, char **argv)
         switch (opt)
         {
             case 'v':
-                global_data.f_args.v_flag = true;
+                g_data.f_args.v_flag = true;
                 break;
             case 'f':
-                if (global_data.f_args.interval)
+                if (g_data.f_args.interval)
                 {
                     fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
                     exit(EXIT_FAILURE);
                 }
-                global_data.f_args.f_flag = true;
+                g_data.f_args.f_flag = true;
                 break;
             case 'q':
-                global_data.f_args.q_flag = true;
+                g_data.f_args.q_flag = true;
                 break;
             case '?':
                 fprintf(stderr, "Try \'./ft_ping --help\' or \'./ft_ping --usage\' for more information.\n");
@@ -141,37 +144,37 @@ static void args_options(int argc, char **argv)
 				print_version();
 				exit(EXIT_SUCCESS);
             case 'c':
-                global_data.f_args.count = is_valid_int(optarg);
-                if (global_data.f_args.count <= 0 )
-                    global_data.f_args.count = -1;
+                g_data.f_args.count = is_valid_int(optarg);
+                if (g_data.f_args.count <= 0 )
+                    g_data.f_args.count = -1;
                 break;
             case 'i':
-                if (global_data.f_args.f_flag)
+                if (g_data.f_args.f_flag)
                 {
                     fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
                     exit(EXIT_FAILURE);
                 }
-                global_data.f_args.interval = atoi(optarg);
+                g_data.f_args.interval = atoi(optarg);
                 break;
             case 'w':
-                global_data.f_args.timeout = is_valid_int(optarg);
-                exit_non_acceptable_value(global_data.f_args.timeout);
+                g_data.f_args.timeout = is_valid_int(optarg);
+                exit_non_acceptable_value(g_data.f_args.timeout);
                 break;
             case 'W':
-                global_data.f_args.linger = is_valid_int(optarg);
-                exit_non_acceptable_value(global_data.f_args.linger);
+                g_data.f_args.linger = is_valid_int(optarg);
+                exit_non_acceptable_value(g_data.f_args.linger);
                 break;
             case 'p':
-                strncpy(global_data.f_args.pattern, optarg, sizeof(global_data.f_args.pattern) - 1);
-                global_data.f_args.pattern[sizeof(global_data.f_args.pattern) - 1] = '\0';
+                strncpy(g_data.f_args.pattern, optarg, sizeof(g_data.f_args.pattern) - 1);
+                g_data.f_args.pattern[sizeof(g_data.f_args.pattern) - 1] = '\0';
 				if (is_valid_hex() != 0)
 					exit(EXIT_FAILURE);
                 break;
 			case 0:
                 if (strcmp("ttl", long_options[long_index].name) == 0)
                 {
-                    global_data.f_args.ttl = is_valid_int(optarg);
-                    exit_non_acceptable_value(global_data.f_args.ttl);
+                    g_data.f_args.ttl = is_valid_int(optarg);
+                    exit_non_acceptable_value(g_data.f_args.ttl);
                 }
                 else if (strcmp("usage", long_options[long_index].name) == 0)
                 {

@@ -1,13 +1,13 @@
 #include "defines.h"
 #include "utils.h"
 #include "args.h"
-#include "icmp.h"
-#include "interface.h"
+#include "ping_io.h"
+#include "net_interface.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-t_data global_data;
+t_ping g_data;
 
 int	main(int argc, char **argv) {
 
@@ -23,9 +23,9 @@ int	main(int argc, char **argv) {
 
 	print_args();
 
-	start_ping();
+	init_ping();
 
-	free(global_data.dest_host);
+	free(g_data.dest_host);
 
 	return 0;
 }

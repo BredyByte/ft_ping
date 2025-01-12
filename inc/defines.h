@@ -15,11 +15,11 @@
 # define IP_HDR_SIZE			20
 # define ICMP_HDR_SIZE			8
 # define ICMP_TIMESTAMP_SIZE    16
-# define IMCP_DATA_SIZE         40
-# define ICMP_PAYLOAD_SIZE		(ICMP_TIMESTAMP_SIZE + IMCP_DATA_SIZE)
+# define ICMP_DATA_SIZE         40
+# define ICMP_PAYLOAD_SIZE		(ICMP_TIMESTAMP_SIZE + ICMP_DATA_SIZE)
 # define PACKET_SIZE			(IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE)
 
-typedef struct s_args {
+typedef struct s_opts {
     bool	v_flag;       	        // --verbose (-v)
     bool	f_flag;       	        // --flood (-f)
     bool	q_flag;       	        // --quiet (-q)
@@ -29,15 +29,17 @@ typedef struct s_args {
     int		linger;        	        // --linger (-W)
     char	pattern[PATTERN_SIZE];	// --pattern (-p)
     int		ttl;           	        // --ttl
-} t_args;
+} t_opts;
 
-typedef struct s_data {
-	char	*dest_host;             // hostname in string format
-	uint8_t dest_ip[INET4_LEN];     // dest IPv4 addr in binary format
-	uint8_t source_ip[INET4_LEN];   // source IPv4 addr in binary format
-	t_args  f_args;
-} t_data;
+typedef struct s_ping {
+	char                *dest_host;
+	struct sockaddr_in  dest_ip;
+	struct sockaddr_in  source_ip;
+    int                 sock;
+    uint16_t            sequence;
+    t_opts              f_args;
+} t_ping;
 
-extern t_data global_data;
+extern t_ping g_data;
 
 #endif

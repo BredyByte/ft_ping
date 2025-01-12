@@ -12,7 +12,6 @@
 static void	hostname_resolution(const char *host)
 {
 	struct addrinfo hints, *result;
-	struct sockaddr_in *addr;
 	int errcode;
 
 	memset(&hints, 0, sizeof(hints));
@@ -26,8 +25,7 @@ static void	hostname_resolution(const char *host)
 		exit(EXIT_FAILURE);
 	}
 
-	addr = (struct sockaddr_in *)result->ai_addr;
-	memcpy(global_data.dest_ip, &addr->sin_addr, sizeof(global_data.dest_ip));
+	memcpy(&g_data.dest_ip, result->ai_addr, sizeof(struct sockaddr_in));
 
   	freeaddrinfo(result);
 }
@@ -38,19 +36,24 @@ void	ip_resolve_and_validate(char *hostip)
     int result = inet_pton(AF_INET, hostip, &(sa.sin_addr));
 	int len;
 
-	if (!result)
-		hostname_resolution(hostip);
+	if (result == 1 )
+	{
+		g_data.dest_ip.sin_family = AF_INET;
+        g_data.dest_ip.sin_addr = sa.sin_addr;
+	}
 	else
-		memcpy(global_data.dest_ip, &sa.sin_addr, sizeof(global_data.dest_ip));
+	{
+		hostname_resolution(hostip);
+	}
 
 	len = strlen(hostip);
-	global_data.dest_host = malloc((len * sizeof(char)) + 1);
-	if (global_data.dest_host == NULL)
+	g_data.dest_host = malloc((len + 1 ) * sizeof(char));
+	if (g_data.dest_host == NULL)
 	{
 		fprintf(stderr, "Error on allocation memory: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	strncpy(global_data.dest_host, hostip, len);
-	global_data.dest_host[len] = '\0';
+	strncpy(g_data.dest_host, hostip, len);
+	g_data.dest_host[len] = '\0';
 }

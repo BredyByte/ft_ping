@@ -14,8 +14,8 @@ REMOVE = rm -rf
 SRC =	main.c \
 		utils.c \
 		args.c \
-		icmp.c \
-		interface.c \
+		ping_io.c \
+		net_interface.c \
 		ip_resolve.c \
 
 OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))

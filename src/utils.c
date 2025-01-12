@@ -4,7 +4,7 @@
 
 int	is_valid_hex(void)
 {
-	char *pattern_ptr = global_data.f_args.pattern;
+	char *pattern_ptr = g_data.f_args.pattern;
 
 	while (*pattern_ptr != '\0')
 	{
@@ -74,22 +74,22 @@ void	print_args(void)
 {
 	char dipinput[INET_ADDRSTRLEN];
 	char sipinput[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, global_data.dest_ip, dipinput, INET_ADDRSTRLEN);
-	inet_ntop(AF_INET, global_data.source_ip, sipinput, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(g_data.dest_ip.sin_addr), dipinput, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(g_data.source_ip.sin_addr), sipinput, INET_ADDRSTRLEN);
 
 	printf("Program's parsed arguments:\n");
-	printf("	Dest host (str)\t%s\n", global_data.dest_host);
-	printf("	Dest IP (bin)\t%s\n", dipinput);
-	printf("	Source IP (bin)\t%s\n", sipinput);
+	printf("	Dest host\t%s\n", g_data.dest_host);
+	printf("	Dest IP\t\t%s\n", dipinput);
+	printf("	Source IP\t%s\n", sipinput);
 	printf("\n");
-	printf("	Verbose:\t%s\n", global_data.f_args.v_flag ? "True" : "False");
-	printf("	Flood:\t\t%s\n", global_data.f_args.f_flag ? "True" : "False");
-	printf("	Quiet:\t\t%s\n", global_data.f_args.q_flag ? "True" : "False");
-	printf("	Count:\t\t%d\n", global_data.f_args.count);
-	printf("	Interval:\t%d\n", global_data.f_args.interval);
-	printf("	Timeout:\t%d\n", global_data.f_args.timeout);
-	printf("	Linger:\t\t%d\n", global_data.f_args.linger);
-	printf("	Pattern:\t%s", global_data.f_args.pattern[0] == '\0' ? "Empty" : global_data.f_args.pattern);
+	printf("	Verbose:\t%s\n", g_data.f_args.v_flag ? "True" : "False");
+	printf("	Flood:\t\t%s\n", g_data.f_args.f_flag ? "True" : "False");
+	printf("	Quiet:\t\t%s\n", g_data.f_args.q_flag ? "True" : "False");
+	printf("	Count:\t\t%d\n", g_data.f_args.count);
+	printf("	Interval:\t%d\n", g_data.f_args.interval);
+	printf("	Timeout:\t%d\n", g_data.f_args.timeout);
+	printf("	Linger:\t\t%d\n", g_data.f_args.linger);
+	printf("	Pattern:\t%s", g_data.f_args.pattern[0] == '\0' ? "Empty" : g_data.f_args.pattern);
 	printf("\n");
-	printf("	ttl:\t\t%d\n", global_data.f_args.ttl);
+	printf("	ttl:\t\t%d\n", g_data.f_args.ttl);
 }

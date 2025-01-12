@@ -56,7 +56,6 @@ static int  is_internet_connected(const char *interface_name)
 void    get_available_interface(void)
 {
     struct ifaddrs *ifaddr;
-    struct sockaddr_in *addr;
     int s;
     char host[NI_MAXHOST];
 
@@ -88,9 +87,7 @@ void    get_available_interface(void)
             // Sheck if interface is connected to the Internet
             if (is_internet_connected(ifa->ifa_name) == 0)
             {
-                addr = (struct sockaddr_in *)ifa->ifa_addr;
-	            memcpy(global_data.source_ip, &addr->sin_addr, sizeof(global_data.dest_ip));
-
+	            memcpy(&g_data.source_ip, ifa->ifa_addr, sizeof(struct sockaddr_in));
                 break;  // Stop after finding the first valid interface
             }
         }
