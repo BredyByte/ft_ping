@@ -13,8 +13,8 @@
 # include <err.h>
 
 static unsigned short   checksum(void *b, int len) {
-    unsigned short *buf = b;
-    unsigned int sum = 0;
+    unsigned short  *buf = b;
+    unsigned int    sum = 0;
 
     // Add up 16-bit words one by one
     for (; len > 1; len -= 2) {
@@ -92,12 +92,31 @@ static void sock_create(int *sock)
     }
 }
 
+static void recv_icmp_response(int sock)
+{
+    char                buffer[4096];
+    struct sockaddr_in  sender;
+    socklen_t           sender_len = sizeof(sender);
+    ssize_t             bytes_received;
+
+    bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
+                    (struct sockaddr *)&sender, &sender_len);
+
+    if (bytes_received < 0)
+    {
+        perror("recvfrom");
+        return;
+    }
+
+    printf("ICMP Echo Reply received from %s\n", inet_ntoa(sender.sin_addr));
+}
+
 void    init_ping(void)
 {
-    char packet[4096];
-	struct iphdr *iph = (struct iphdr *)packet;
-    struct icmphdr *icmph = (struct icmphdr *)(packet + sizeof(struct iphdr));
-    struct sockaddr_in dest;
+    char                packet[4096];
+	struct iphdr        *iph = (struct iphdr *)packet;
+    struct icmphdr      *icmph = (struct icmphdr *)(packet + sizeof(struct iphdr));
+    struct sockaddr_in  dest;
 
 	memset(packet, 0, sizeof(packet));
 
@@ -120,7 +139,10 @@ void    init_ping(void)
 		exit(EXIT_FAILURE);
     }
 
-	printf("ICMP Echo Request sent to 8.8.8.8\n");
+	printf("ICMP Echo Request sent to %s\n", inet_ntoa(g_data.dest_ip.sin_addr));
+
+    // Waiting for response
+    recv_icmp_response(g_data.sock);
 
 	close(g_data.sock);
 }

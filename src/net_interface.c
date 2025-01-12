@@ -15,8 +15,8 @@
 
 static int  is_internet_connected(const char *interface_name)
 {
-    int sock, s, connect_status;
-    struct sockaddr_in server;
+    int                 sock, s, connect_status;
+    struct sockaddr_in  server;
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
@@ -55,9 +55,9 @@ static int  is_internet_connected(const char *interface_name)
 
 void    get_available_interface(void)
 {
-    struct ifaddrs *ifaddr;
-    int s;
-    char host[NI_MAXHOST];
+    struct ifaddrs  *ifaddr;
+    int             s;
+    char            host[NI_MAXHOST];
 
     if (getifaddrs(&ifaddr) == -1)
     {

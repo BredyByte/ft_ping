@@ -47,16 +47,19 @@ static void defs_global_strust(void)
 
 static void handle_quest_mark(int argc, char **argv)
 {
+    size_t  len;
+    char    *current_arg;
+
     if (argc < 2)
         return;
 
     for (int i = 1; i < argc; i++)
     {
-        char *current_arg = argv[i];
+        current_arg = argv[i];
         if (current_arg == NULL)
             return;
 
-        size_t len = strlen(current_arg);
+        len = strlen(current_arg);
         if (len != 2)
             continue;
 
@@ -74,9 +77,9 @@ static void handle_quest_mark(int argc, char **argv)
 
 static int  is_valid_int(const char *str)
 {
-    int	res = 0;
-	int	sign = 1;
-    char *ptr = (char *)str;
+    int     res = 0;
+	int     sign = 1;
+    char    *ptr = (char *)str;
 
    while (isspace(*ptr))
 		ptr++;

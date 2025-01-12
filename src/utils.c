@@ -4,7 +4,7 @@
 
 int	is_valid_hex(void)
 {
-	char *pattern_ptr = g_data.f_args.pattern;
+	char	*pattern_ptr = g_data.f_args.pattern;
 
 	while (*pattern_ptr != '\0')
 	{
@@ -72,8 +72,8 @@ void	print_version(void)
 
 void	print_args(void)
 {
-	char dipinput[INET_ADDRSTRLEN];
-	char sipinput[INET_ADDRSTRLEN];
+	char	dipinput[INET_ADDRSTRLEN];
+	char	sipinput[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(g_data.dest_ip.sin_addr), dipinput, INET_ADDRSTRLEN);
 	inet_ntop(AF_INET, &(g_data.source_ip.sin_addr), sipinput, INET_ADDRSTRLEN);
 

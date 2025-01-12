@@ -19,7 +19,8 @@
 # define ICMP_PAYLOAD_SIZE		(ICMP_TIMESTAMP_SIZE + ICMP_DATA_SIZE)
 # define PACKET_SIZE			(IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE)
 
-typedef struct s_opts {
+typedef struct s_opts
+{
     bool	v_flag;       	        // --verbose (-v)
     bool	f_flag;       	        // --flood (-f)
     bool	q_flag;       	        // --quiet (-q)
@@ -29,16 +30,17 @@ typedef struct s_opts {
     int		linger;        	        // --linger (-W)
     char	pattern[PATTERN_SIZE];	// --pattern (-p)
     int		ttl;           	        // --ttl
-} t_opts;
+}   t_opts;
 
-typedef struct s_ping {
+typedef struct s_ping
+{
 	char                *dest_host;
 	struct sockaddr_in  dest_ip;
 	struct sockaddr_in  source_ip;
     int                 sock;
     uint16_t            sequence;
     t_opts              f_args;
-} t_ping;
+}   t_ping;
 
 extern t_ping g_data;
 

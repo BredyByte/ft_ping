@@ -11,8 +11,8 @@
 
 static void	hostname_resolution(const char *host)
 {
-	struct addrinfo hints, *result;
-	int errcode;
+	struct addrinfo	hints, *result;
+	int				errcode;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -32,9 +32,11 @@ static void	hostname_resolution(const char *host)
 
 void	ip_resolve_and_validate(char *hostip)
 {
-	struct sockaddr_in sa;
-    int result = inet_pton(AF_INET, hostip, &(sa.sin_addr));
-	int len;
+	struct sockaddr_in	sa;
+    int					result;
+	int					len;
+
+	result = inet_pton(AF_INET, hostip, &(sa.sin_addr));
 
 	if (result == 1 )
 	{

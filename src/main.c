@@ -21,8 +21,6 @@ int	main(int argc, char **argv) {
 
 	get_available_interface();
 
-	print_args();
-
 	init_ping();
 
 	free(g_data.dest_host);
