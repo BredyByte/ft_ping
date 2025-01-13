@@ -1,4 +1,5 @@
 # include "defines.h"
+# include "utils.h"
 # include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
 # include <netinet/ip.h>		// Def. struct for IP packet header
 # include <sys/socket.h>
@@ -80,16 +81,41 @@ static void sock_create(int *sock)
 	if ((*sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
     {
         perror("socket");
-		free(g_data.dest_host);
-        exit(EXIT_FAILURE);
+		exit_failure(NULL);
     }
 
 	// Flag for telling the system that i will manage the IP header manually.
     if (setsockopt(*sock, IPPROTO_IP, IP_HDRINCL, &opt, sizeof(opt)) < 0)
     {
         perror("setsockopt");
-        exit(EXIT_FAILURE);
+        exit_failure(NULL);
     }
+}
+
+void store_rtt(double rtt)
+{
+    double              *ptr_new;
+
+    g_data.stats.packets_received++;
+
+    if (g_data.stats.rtt_count == 0)
+    {
+        g_data.stats.rtt_values = (double *)malloc(sizeof(double));
+        if (g_data.stats.rtt_values == NULL)
+            exit_failure("Memory allocation failed");
+    }
+    else
+    {
+        ptr_new = (double *)realloc(g_data.stats.rtt_values,
+                    (g_data.stats.rtt_count + 1) * sizeof(double));
+        if (ptr_new == NULL)
+            exit_failure("Memory allocation failed");
+
+        g_data.stats.rtt_values = ptr_new;
+    }
+
+    g_data.stats.rtt_values[g_data.stats.rtt_count] = rtt;
+    g_data.stats.rtt_count++;
 }
 
 static void recv_icmp_response(int sock)
@@ -103,7 +129,7 @@ static void recv_icmp_response(int sock)
     int                 iph_len;
     struct icmphdr      *icmph;
     struct timeval      send_time, recv_time;
-    double rtt;
+    double              rtt;
 
     bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
                     (struct sockaddr *)&sender, &sender_len);
@@ -129,6 +155,8 @@ static void recv_icmp_response(int sock)
         rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
         rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
 
+        store_rtt(rtt);
+
         printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                inet_ntoa(sender.sin_addr),
                ntohs(icmph->un.echo.sequence),
@@ -140,6 +168,19 @@ static void recv_icmp_response(int sock)
         printf("Received non-echo reply ICMP packet (type=%d, code=%d)\n",
                icmph->type, icmph->code);
     }
+}
+
+void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in dest)
+{
+    if (sendto(g_data.sock, packet, ntohs(iph_totallen), 0,
+        (struct sockaddr *)&dest, sizeof(dest)) < 0)
+    {
+        perror("sendto");
+        exit_failure(NULL);
+    }
+
+    g_data.stats.packets_transmitted++;
+	printf("ICMP Echo Request sent to %s\n", inet_ntoa(g_data.dest_ip.sin_addr));
 }
 
 void    init_ping(void)
@@ -161,19 +202,9 @@ void    init_ping(void)
 
     prep_icmphdr(packet, icmph);
 
-	if (sendto(g_data.sock, packet, ntohs(iph->tot_len), 0,
-        (struct sockaddr *)&dest, sizeof(dest)) < 0)
-    {
-        perror("sendto");
-        close(g_data.sock);
-		free(g_data.dest_host);
-		exit(EXIT_FAILURE);
-    }
-
-	printf("ICMP Echo Request sent to %s\n", inet_ntoa(g_data.dest_ip.sin_addr));
+    // Send ping to destination
+    send_icmp_request(packet, iph->tot_len, dest);
 
     // Waiting for response
     recv_icmp_response(g_data.sock);
-
-	close(g_data.sock);
 }

@@ -43,6 +43,15 @@ static void defs_global_strust(void)
 	g_data.f_args.linger = -1;
 	g_data.f_args.pattern[0] = '\0';
 	g_data.f_args.ttl = -1;
+
+    g_data.stats.packets_transmitted = 0;
+    g_data.stats.packets_received = 0;
+    g_data.stats.rtt_values = NULL;
+    g_data.stats.rtt_count = 0;
+    g_data.stats.rtt_min = 0;
+    g_data.stats.rtt_max = 0;
+    g_data.stats.rtt_avg = 0;
+    g_data.stats.rtt_stddev = 0;
 }
 
 static void handle_quest_mark(int argc, char **argv)
