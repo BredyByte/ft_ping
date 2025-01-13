@@ -103,7 +103,7 @@ void store_rtt(double rtt)
     {
         g_data.stats.rtt_values = (double *)malloc(RTT_RESERVE_BLOCK_SIZE * sizeof(double));
         if (g_data.stats.rtt_values == NULL)
-            exit_failure("Memory allocation failed");
+            exit_failure("Error on allocation memory");
 
         g_data.stats.rtt_capacity = RTT_RESERVE_BLOCK_SIZE;
     }
@@ -114,7 +114,7 @@ void store_rtt(double rtt)
         ptr_new = (double *)realloc(g_data.stats.rtt_values,
                             (g_data.stats.rtt_capacity + RTT_RESERVE_BLOCK_SIZE) * sizeof(double));
         if (ptr_new == NULL)
-            exit_failure("Memory allocation failed");
+            exit_failure("Error on allocation memory");
 
         g_data.stats.rtt_values = ptr_new;
         g_data.stats.rtt_capacity += RTT_RESERVE_BLOCK_SIZE;
@@ -202,6 +202,7 @@ void    init_ping(void)
     prep_iphdr(packet, iph);
 
     // config dest addres
+    dest.sin_port = 0;
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = iph->daddr;
 

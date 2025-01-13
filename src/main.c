@@ -13,7 +13,7 @@ int	main(int argc, char **argv) {
 
 	if (getuid() != 0)
 	{
-		fprintf(stderr,"Root privileges are required to run ft_ping.\n");
+		fprintf(stderr,"ft_ping: root privileges are required to run ft_ping.\n");
 		return 1;
 	}
 

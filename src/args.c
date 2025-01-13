@@ -77,7 +77,7 @@ static void handle_quest_mark(int argc, char **argv)
             if (current_arg[j] == '-' && current_arg[j + 1] == '?')
             {
                 print_help();
-                exit(0);
+                exit(EXIT_SUCCESS);
             }
         }
     }
@@ -200,7 +200,7 @@ static void args_options(int argc, char **argv)
                 }
                 break;
             default:
-                fprintf(stderr, "Unknown option encountered.\n");
+                fprintf(stderr, "ft_ping: unknown option encountered.\n");
                 exit(EXIT_FAILURE);
         }
     }

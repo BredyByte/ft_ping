@@ -20,7 +20,7 @@ void	exit_failure(const char *message)
 	if (message)
 		fprintf(stderr, "%s\n", message);
 	else
-		fprintf(stderr, "Falat error");
+		fprintf(stderr, "Falat error\n");
 
 	free_allocations();
 

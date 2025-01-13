@@ -1,5 +1,6 @@
 # define _GNU_SOURCE
 # include "defines.h"
+# include "utils.h"
 # include <string.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -62,7 +63,7 @@ void    get_available_interface(void)
     if (getifaddrs(&ifaddr) == -1)
     {
         perror("getaddrinfo");
-        exit(EXIT_FAILURE);
+        exit_failure(NULL);
     }
 
     for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
@@ -96,8 +97,5 @@ void    get_available_interface(void)
     freeifaddrs(ifaddr);
 
     if (host[0] == 0)
-    {
-        fprintf(stderr, "Error: No suitable network interface found.\n");
-        exit(EXIT_FAILURE);
-    }
+        exit_failure("ft_ping: no suitable network interface found.");
 }
