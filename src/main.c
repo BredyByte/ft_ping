@@ -23,7 +23,7 @@ int	main(int argc, char **argv) {
 
 	init_ping();
 
-	free(g_data.dest_host);
+	free_allocations();
 
 	return 0;
 }

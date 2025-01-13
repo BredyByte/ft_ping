@@ -1,6 +1,31 @@
-#include "defines.h"
-#include <stdio.h>
-#include <ctype.h>
+# include "defines.h"
+# include <stdio.h>
+# include <ctype.h>
+# include <stdlib.h>
+# include <unistd.h>
+
+void	free_allocations(void)
+{
+	if (g_data.dest_host)
+		free(g_data.dest_host);
+
+	if (g_data.stats.rtt_values)
+		free(g_data.stats.rtt_values);
+
+	close(g_data.sock);
+}
+
+void	exit_failure(const char *message)
+{
+	if (message)
+		fprintf(stderr, "%s\n", message);
+	else
+		fprintf(stderr, "Falat error");
+
+	free_allocations();
+
+	exit(EXIT_FAILURE);
+}
 
 int	is_valid_hex(void)
 {
