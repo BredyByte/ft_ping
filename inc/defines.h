@@ -7,6 +7,7 @@
 
 # define INET4_LEN              4
 # define PATTERN_SIZE           113
+# define RTT_RESERVE_BLOCK_SIZE 20              // Block size for memory allocation (for rtt_values array)
 
 # define FT_PING_TTL            64
 # define FT_PING_ID		        42
@@ -37,7 +38,8 @@ typedef struct s_ping_stats
     int                 packets_transmitted;
     int                 packets_received;
     double              *rtt_values;
-    int                 rtt_count;
+    int                 rtt_count;              // Current len of rtt_values array
+    int                 rtt_capacity;           // Current capacity of rtt_values array
     double              rtt_min;
     double              rtt_max;
     double              rtt_avg;

@@ -101,18 +101,23 @@ void store_rtt(double rtt)
 
     if (g_data.stats.rtt_count == 0)
     {
-        g_data.stats.rtt_values = (double *)malloc(sizeof(double));
+        g_data.stats.rtt_values = (double *)malloc(RTT_RESERVE_BLOCK_SIZE * sizeof(double));
         if (g_data.stats.rtt_values == NULL)
             exit_failure("Memory allocation failed");
+
+        g_data.stats.rtt_capacity = RTT_RESERVE_BLOCK_SIZE;
     }
-    else
+
+    // Check if more memory is needed
+    if (g_data.stats.rtt_count >= g_data.stats.rtt_capacity)
     {
         ptr_new = (double *)realloc(g_data.stats.rtt_values,
-                    (g_data.stats.rtt_count + 1) * sizeof(double));
+                            (g_data.stats.rtt_capacity + RTT_RESERVE_BLOCK_SIZE) * sizeof(double));
         if (ptr_new == NULL)
             exit_failure("Memory allocation failed");
 
         g_data.stats.rtt_values = ptr_new;
+        g_data.stats.rtt_capacity += RTT_RESERVE_BLOCK_SIZE;
     }
 
     g_data.stats.rtt_values[g_data.stats.rtt_count] = rtt;
@@ -181,7 +186,6 @@ void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in d
     }
 
     g_data.stats.packets_transmitted++;
-	printf("ICMP Echo Request sent to %s\n", inet_ntoa(g_data.dest_ip.sin_addr));
 }
 
 void    init_ping(void)
@@ -202,6 +206,8 @@ void    init_ping(void)
     dest.sin_addr.s_addr = iph->daddr;
 
     prep_icmphdr(packet, icmph);
+
+    printf("PING %s (%s): 56 data bytes\n", g_data.dest_host, inet_ntoa(g_data.dest_ip.sin_addr));
 
     // Send ping to destination
     send_icmp_request(packet, iph->tot_len, dest);
