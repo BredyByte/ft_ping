@@ -1,5 +1,6 @@
 # include "defines.h"
 # include "utils.h"
+# include "ping_stats.h"
 # include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
 # include <netinet/ip.h>		// Def. struct for IP packet header
 # include <sys/socket.h>
@@ -207,4 +208,6 @@ void    init_ping(void)
 
     // Waiting for response
     recv_icmp_response(g_data.sock);
+
+    print_stats();
 }

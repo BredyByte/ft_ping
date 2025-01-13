@@ -17,6 +17,7 @@ SRC =	main.c \
 		ping_io.c \
 		net_interface.c \
 		ip_resolve.c \
+		ping_stats.c \
 
 OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))
 
