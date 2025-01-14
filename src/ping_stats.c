@@ -78,10 +78,11 @@ void    print_stats()
     g_data.stats.rtt_avg = calc_avg_rrt(g_data.stats.rtt_values, g_data.stats.rtt_count);
     g_data.stats.rtt_stddev = calc_stddev_rrt(g_data.stats.rtt_values, g_data.stats.rtt_count);
 
-    printf("--- %s statistics ---\n", g_data.dest_host);
+    printf("--- %s ping statistics ---\n", g_data.dest_host);
     printf("%d packets transmitted, %d packets received, %d%% packet loss\n",
            g_data.stats.packets_transmitted, g_data.stats.packets_received, packet_loss_percent);
-    printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-           g_data.stats.rtt_min, g_data.stats.rtt_avg, g_data.stats.rtt_max,
-           g_data.stats.rtt_stddev);
+    if (g_data.stats.packets_received > 0)
+        printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+               g_data.stats.rtt_min, g_data.stats.rtt_avg, g_data.stats.rtt_max,
+                g_data.stats.rtt_stddev);
 }

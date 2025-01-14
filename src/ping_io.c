@@ -13,6 +13,8 @@
 # include <sys/time.h>
 # include <time.h>
 # include <err.h>
+# include <fcntl.h>             // For socket to non-blocking mode
+# include <errno.h>             // For handle recvfrom errors
 
 static unsigned short   checksum(void *b, int len) {
     unsigned short  *buf = b;
@@ -59,24 +61,18 @@ static void prep_iphdr(void *packet, struct iphdr *iph)
     iph->check = checksum((unsigned short *)packet, IP_HDR_SIZE);
 }
 
-static void prep_icmphdr(void *packet, struct icmphdr *icmph)
+static void prep_icmphdr(struct icmphdr *icmph)
 {
-    unsigned char *ptr = (unsigned char *)packet;
-
     icmph->type = ICMP_ECHO;
     icmph->code = 0;
     icmph->un.echo.id = htons(g_data.icmp_id);
     icmph->un.echo.sequence = htons(0);
     icmph->checksum = 0;
-
-    fill_icmp_data(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_TIMESTAMP_SIZE, ICMP_PAYLOAD_SIZE);
-    fill_icmp_timestamp(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE);
-
-    icmph->checksum = checksum((unsigned short *)icmph, ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE);
 }
 
 static void sock_create(int *sock)
 {
+    int flags;
     int opt = 1;
 
 	if ((*sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
@@ -91,6 +87,10 @@ static void sock_create(int *sock)
         perror("setsockopt");
         exit_failure(NULL);
     }
+
+    // Setting the socket to non-blocking mode
+    flags = fcntl(*sock, F_GETFL, 0);
+    fcntl(*sock, F_SETFL, flags | O_NONBLOCK);
 }
 
 void store_rtt(double rtt)
@@ -138,15 +138,15 @@ static void recv_icmp_response(int sock)
     double              rtt;
 
     bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
-                    (struct sockaddr *)&sender, &sender_len);
+                            (struct sockaddr *)&sender, &sender_len);
 
     if (bytes_received < 0)
-    {
-        perror("recvfrom");
+        return;
+
+    if (gettimeofday(&recv_time, NULL) == -1) {
+        perror("Failed to get time of day");
         return;
     }
-
-    gettimeofday(&recv_time, NULL);
 
     iph = (struct iphdr *)buffer;
     iph_len = iph->ihl * 4;
@@ -155,7 +155,6 @@ static void recv_icmp_response(int sock)
 
     if (icmph->type == ICMP_ECHOREPLY)
     {
-
         memcpy(&send_time, buffer + iph_len + sizeof(struct icmphdr), sizeof(struct timeval));
 
         rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
@@ -171,8 +170,8 @@ static void recv_icmp_response(int sock)
     }
     else
     {
-        printf("Received non-echo reply ICMP packet (type=%d, code=%d)\n",
-               icmph->type, icmph->code);
+        fprintf(stderr, "Received non-echo reply ICMP packet (type=%d, code=%d)\n",
+                icmph->type, icmph->code);
     }
 }
 
@@ -188,6 +187,27 @@ void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in d
     g_data.stats.packets_transmitted++;
 }
 
+static void display_ping_intro(void)
+{
+    printf("PING %s (%s): 56 data bytes", g_data.dest_host, inet_ntoa(g_data.dest_ip.sin_addr));
+    if (g_data.f_args.v_flag)
+        printf(", id 0x%x = %d", g_data.icmp_id, g_data.icmp_id);
+    printf("\n");
+}
+
+void refill_icmpdata(void *packet, struct icmphdr *icmph)
+{
+    unsigned char *ptr = (unsigned char *)packet;
+
+    fill_icmp_data(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_TIMESTAMP_SIZE, ICMP_PAYLOAD_SIZE);
+    fill_icmp_timestamp(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE);
+
+    icmph->un.echo.sequence = htons(g_data.sequence++);
+
+    icmph->checksum = 0;
+    icmph->checksum = checksum((unsigned short *)icmph, ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE);
+}
+
 void    init_ping(void)
 {
     char                packet[4096];
@@ -196,28 +216,30 @@ void    init_ping(void)
     struct sockaddr_in  dest;
 
 	memset(packet, 0, sizeof(packet));
-
     sock_create(&g_data.sock);
-
     prep_iphdr(packet, iph);
 
-    // config dest addres
+    // Config dest addres
     dest.sin_port = 0;
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = iph->daddr;
 
-    prep_icmphdr(packet, icmph);
+    prep_icmphdr(icmph);
+    display_ping_intro();
 
-    printf("PING %s (%s): 56 data bytes", g_data.dest_host, inet_ntoa(g_data.dest_ip.sin_addr));
-    if (g_data.f_args.v_flag)
-        printf(", id 0x%x = %d", g_data.icmp_id, g_data.icmp_id);
-    printf("\n");
+    while (g_continue_ping)
+    {
+        refill_icmpdata(packet, icmph);
 
-    // Send ping to destination
-    send_icmp_request(packet, iph->tot_len, dest);
+        // Send ping to destination
+        send_icmp_request(packet, iph->tot_len, dest);
 
-    // Waiting for response
-    recv_icmp_response(g_data.sock);
+        // Waiting for response
+        recv_icmp_response(g_data.sock);
+
+        // Delay before sending each pack.
+        sleep(1);
+    }
 
     print_stats();
 }

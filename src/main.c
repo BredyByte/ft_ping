@@ -6,8 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
+#include <stdbool.h>
 
-t_ping g_data;
+t_ping			g_data;
+volatile bool	g_continue_ping = true;
+
+void handle_interrupt(int sig)
+{
+    (void)sig;
+    g_continue_ping = false;  // For interrupt ping-lifecycle
+}
+
 
 int	main(int argc, char **argv) {
 
@@ -16,6 +26,9 @@ int	main(int argc, char **argv) {
 		fprintf(stderr,"ft_ping: root privileges are required to run ft_ping.\n");
 		return 1;
 	}
+
+	if (signal(SIGINT, handle_interrupt) == SIG_ERR)
+		exit_failure("signal");
 
 	args(argc, argv);
 

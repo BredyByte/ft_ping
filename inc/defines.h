@@ -4,6 +4,7 @@
 # include <stdbool.h>
 # include <stdint.h>
 # include <arpa/inet.h>
+# include <stdbool.h>
 
 # define INET4_LEN              4
 # define PATTERN_SIZE           113
@@ -58,6 +59,6 @@ typedef struct s_ping
     t_ping_stats        stats;
 }   t_ping;
 
-extern t_ping g_data;
-
+extern t_ping           g_data;
+extern volatile bool    g_continue_ping;
 #endif
