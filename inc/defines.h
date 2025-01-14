@@ -53,6 +53,7 @@ typedef struct s_ping
 	struct sockaddr_in  source_ip;
     int                 sock;
     uint16_t            sequence;
+    pid_t               icmp_id;                // In inetutils, ping PID is used for imcp pack. id
     t_opts              f_args;
     t_ping_stats        stats;
 }   t_ping;

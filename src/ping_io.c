@@ -65,7 +65,7 @@ static void prep_icmphdr(void *packet, struct icmphdr *icmph)
 
     icmph->type = ICMP_ECHO;
     icmph->code = 0;
-    icmph->un.echo.id = htons(1234);
+    icmph->un.echo.id = htons(g_data.icmp_id);
     icmph->un.echo.sequence = htons(0);
     icmph->checksum = 0;
 
@@ -208,7 +208,10 @@ void    init_ping(void)
 
     prep_icmphdr(packet, icmph);
 
-    printf("PING %s (%s): 56 data bytes\n", g_data.dest_host, inet_ntoa(g_data.dest_ip.sin_addr));
+    printf("PING %s (%s): 56 data bytes", g_data.dest_host, inet_ntoa(g_data.dest_ip.sin_addr));
+    if (g_data.f_args.v_flag)
+        printf(", id 0x%x = %d", g_data.icmp_id, g_data.icmp_id);
+    printf("\n");
 
     // Send ping to destination
     send_icmp_request(packet, iph->tot_len, dest);

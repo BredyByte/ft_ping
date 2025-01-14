@@ -8,6 +8,7 @@
 # include <stdio.h>
 # include <ctype.h>
 # include <limits.h>
+# include <unistd.h>
 
 static struct option long_options[] =
 {
@@ -32,6 +33,7 @@ static void defs_global_strust(void)
     memset(&g_data.dest_host, 0, sizeof(uint8_t));
     g_data.dest_host = NULL;
     g_data.sequence = 0;
+    g_data.icmp_id = getpid();
     g_data.sock = 0;
 
     g_data.f_args.v_flag = false;
