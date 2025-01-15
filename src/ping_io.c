@@ -191,12 +191,12 @@ static void recv_icmp_response(int sock)
         rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
 
         store_rtt(rtt);
-
-        printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-               inet_ntoa(sender.sin_addr),
-               ntohs(icmph->un.echo.sequence),
-               iph->ttl,
-               rtt);
+        if (!g_data.f_args.q_flag)
+            printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+                inet_ntoa(sender.sin_addr),
+                ntohs(icmph->un.echo.sequence),
+                iph->ttl,
+                rtt);
     }
     else
     {
