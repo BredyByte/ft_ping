@@ -14,6 +14,7 @@
 # include <time.h>
 # include <err.h>
 # include <errno.h>             // For handle recvfrom errors
+# include <limits.h>
 
 static unsigned short   checksum(void *b, int len) {
     unsigned short  *buf = b;
@@ -256,7 +257,9 @@ void    init_ping(void)
     prep_icmphdr(icmph);
     display_ping_intro();
 
-    while (g_continue_ping)
+    int packet_count = g_data.f_args.count > 0 ? g_data.f_args.count : INT_MAX;
+
+    while (g_continue_ping && packet_count > 0)
     {
         refill_iphdr(packet, iph);
         refill_icmpdata(packet, icmph);
@@ -266,6 +269,8 @@ void    init_ping(void)
 
         // Waiting for response
         recv_icmp_response(g_data.sock);
+
+        packet_count--;
 
         // Delay before sending each pack.
         sleep(1);
