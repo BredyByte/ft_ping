@@ -13,7 +13,6 @@
 # include <sys/time.h>
 # include <time.h>
 # include <err.h>
-# include <fcntl.h>             // For socket to non-blocking mode
 # include <errno.h>             // For handle recvfrom errors
 
 static unsigned short   checksum(void *b, int len) {
@@ -72,7 +71,6 @@ static void prep_icmphdr(struct icmphdr *icmph)
 
 static void sock_create(int *sock)
 {
-    int flags;
     int opt = 1;
 
 	if ((*sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
@@ -87,10 +85,6 @@ static void sock_create(int *sock)
         perror("setsockopt");
         exit_failure(NULL);
     }
-
-    // Setting the socket to non-blocking mode
-    flags = fcntl(*sock, F_GETFL, 0);
-    fcntl(*sock, F_SETFL, flags | O_NONBLOCK);
 }
 
 void store_rtt(double rtt)
@@ -137,11 +131,28 @@ static void recv_icmp_response(int sock)
     struct timeval      send_time, recv_time;
     double              rtt;
 
+    fd_set              read_fds;
+    struct timeval      timeout;
+
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    FD_ZERO(&read_fds);
+    FD_SET(sock, &read_fds);
+
+    int select_ret = select(sock + 1, &read_fds, NULL, NULL, &timeout);
+
+    if (select_ret <= 0)
+        return;
+
     bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
                             (struct sockaddr *)&sender, &sender_len);
 
     if (bytes_received < 0)
+    {
+        perror("recvfrom error");
         return;
+    }
 
     if (gettimeofday(&recv_time, NULL) == -1) {
         perror("Failed to get time of day");
@@ -150,7 +161,6 @@ static void recv_icmp_response(int sock)
 
     iph = (struct iphdr *)buffer;
     iph_len = iph->ihl * 4;
-
     icmph = (struct icmphdr *)(buffer + iph_len);
 
     if (icmph->type == ICMP_ECHOREPLY)
