@@ -24,7 +24,6 @@
 typedef struct s_opts
 {
     bool	            v_flag;       	        // --verbose (-v)
-    bool	            f_flag;       	        // --flood (-f)
     bool	            q_flag;       	        // --quiet (-q)
     int		            count;         	        // --count (-c)
     int		            interval;      	        // --interval (-i)

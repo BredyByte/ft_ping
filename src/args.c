@@ -13,7 +13,6 @@
 static struct option long_options[] =
 {
     {"verbose", no_argument, NULL, 'v'},      	// --verbose -> 'v'
-    {"flood", no_argument, NULL, 'f'},        	// --flood -> 'f'
     {"quiet", no_argument, NULL, 'q'},        	// --quiet -> 'q'
     {"help", no_argument, NULL, 0},         	// --help -> -
     {"version", no_argument, NULL, 'V'},      	// --version -> 'V'
@@ -37,7 +36,6 @@ static void defs_global_strust(void)
     g_data.sock = 0;
 
     g_data.f_args.v_flag = false;
-	g_data.f_args.f_flag = false;
 	g_data.f_args.q_flag = false;
 	g_data.f_args.count = -1;
 	g_data.f_args.interval = -1;
@@ -140,14 +138,6 @@ static void args_options(int argc, char **argv)
             case 'v':
                 g_data.f_args.v_flag = true;
                 break;
-            case 'f':
-                if (g_data.f_args.interval)
-                {
-                    fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
-                    exit(EXIT_FAILURE);
-                }
-                g_data.f_args.f_flag = true;
-                break;
             case 'q':
                 g_data.f_args.q_flag = true;
                 break;
@@ -163,11 +153,6 @@ static void args_options(int argc, char **argv)
                     g_data.f_args.count = -1;
                 break;
             case 'i':
-                if (g_data.f_args.f_flag)
-                {
-                    fprintf(stderr, "ft_ping: -f and -i incompatible options\n");
-                    exit(EXIT_FAILURE);
-                }
                 g_data.f_args.interval = atoi(optarg);
                 break;
             case 'w':

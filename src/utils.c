@@ -108,7 +108,6 @@ void	print_args(void)
 	printf("	Source IP\t%s\n", sipinput);
 	printf("\n");
 	printf("	Verbose:\t%s\n", g_data.f_args.v_flag ? "True" : "False");
-	printf("	Flood:\t\t%s\n", g_data.f_args.f_flag ? "True" : "False");
 	printf("	Quiet:\t\t%s\n", g_data.f_args.q_flag ? "True" : "False");
 	printf("	Count:\t\t%d\n", g_data.f_args.count);
 	printf("	Interval:\t%d\n", g_data.f_args.interval);
