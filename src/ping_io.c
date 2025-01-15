@@ -45,19 +45,38 @@ static void fill_icmp_data(unsigned char *buffer, size_t size)
     memset(buffer, 0x42, size);
 }
 
-static void prep_iphdr(void *packet, struct iphdr *iph)
+static uint16_t generate_packet_id(void)
+{
+    static uint16_t packet_id = 0;
+
+    if (g_data.sequence == 0)
+        packet_id = (uint16_t)rand();
+    else
+        packet_id++;
+
+    return packet_id;
+}
+
+static void refill_iphdr(void *packet, struct iphdr *iph)
+{
+    iph->id = htons(generate_packet_id());
+    iph->check = 0;
+    iph->check = checksum((unsigned short *)packet, IP_HDR_SIZE);
+}
+
+static void prep_iphdr(struct iphdr *iph)
 {
     iph->ihl = 5;
     iph->version = 4;
     iph->tos = 0;
     iph->tot_len = htons(IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE);
-    iph->id = htons(54321);
+    iph->id = htons(0);
     iph->frag_off = 0x40;
     iph->ttl = 64;
     iph->protocol = IPPROTO_ICMP;
     iph->saddr = g_data.source_ip.sin_addr.s_addr;
     iph->daddr = g_data.dest_ip.sin_addr.s_addr;
-    iph->check = checksum((unsigned short *)packet, IP_HDR_SIZE);
+    iph->check = 0;
 }
 
 static void prep_icmphdr(struct icmphdr *icmph)
@@ -87,7 +106,7 @@ static void sock_create(int *sock)
     }
 }
 
-void store_rtt(double rtt)
+static void store_rtt(double rtt)
 {
     double              *ptr_new;
 
@@ -185,7 +204,7 @@ static void recv_icmp_response(int sock)
     }
 }
 
-void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in dest)
+static void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in dest)
 {
     if (sendto(g_data.sock, packet, ntohs(iph_totallen), 0,
         (struct sockaddr *)&dest, sizeof(dest)) < 0)
@@ -205,7 +224,7 @@ static void display_ping_intro(void)
     printf("\n");
 }
 
-void refill_icmpdata(void *packet, struct icmphdr *icmph)
+static void refill_icmpdata(void *packet, struct icmphdr *icmph)
 {
     unsigned char *ptr = (unsigned char *)packet;
 
@@ -227,7 +246,7 @@ void    init_ping(void)
 
 	memset(packet, 0, sizeof(packet));
     sock_create(&g_data.sock);
-    prep_iphdr(packet, iph);
+    prep_iphdr(iph);
 
     // Config dest addres
     dest.sin_port = 0;
@@ -239,6 +258,7 @@ void    init_ping(void)
 
     while (g_continue_ping)
     {
+        refill_iphdr(packet, iph);
         refill_icmpdata(packet, icmph);
 
         // Send ping to destination
