@@ -43,7 +43,35 @@ static void fill_icmp_timestamp(void *buffer)
 
 static void fill_icmp_data(unsigned char *buffer, size_t size)
 {
-    memset(buffer, 0x42, size);
+    size_t          pattern_len = strlen(g_data.f_args.pattern);
+    unsigned char   temp_buffer[40];
+    size_t          temp_len = 0;
+    unsigned int    byte;
+
+    if (pattern_len == 0)
+    {
+        memset(buffer, 0x42, size);
+        return;
+    }
+
+    for (size_t i = 0; i < pattern_len; i += 2)
+    {
+        if (sscanf(&g_data.f_args.pattern[i], "%2x", &byte) != 1)
+        {
+            fprintf(stderr, "ft_ping: error parsing pattern near '%s'\n", &g_data.f_args.pattern[i]);
+            memset(buffer, 0x42, size);
+            return;
+        }
+        temp_buffer[temp_len++] = (unsigned char)byte;
+
+        if (i + 1 >= pattern_len)
+            break;
+    }
+
+    for (size_t i = 0; i < size; i++)
+    {
+        buffer[i] = temp_buffer[i % temp_len];
+    }
 }
 
 static uint16_t generate_packet_id(void)

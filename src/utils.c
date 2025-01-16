@@ -27,19 +27,32 @@ void	exit_failure(const char *message)
 	exit(EXIT_FAILURE);
 }
 
-int	is_valid_hex(void)
+int	hex_serializer(void)
 {
 	char	*pattern_ptr = g_data.f_args.pattern;
+	char	*write_ptr = g_data.f_args.pattern;
 
 	while (*pattern_ptr != '\0')
 	{
-		if (isxdigit(*pattern_ptr) == 0)
+		if (*pattern_ptr == '0' && *(pattern_ptr + 1) == 'x')
+        {
+            *write_ptr++ = '0';
+            *write_ptr++ = '0';
+            pattern_ptr += 2;
+        }
+		else
 		{
-			fprintf(stderr, "ping: error in pattern near %s", pattern_ptr);
-			return -1;
+			if (isxdigit(*pattern_ptr) == 0)
+			{
+				fprintf(stderr, "ping: error in pattern near %s\n", pattern_ptr);
+				return -1;
+			}
+
+			*write_ptr++ = *pattern_ptr++;
 		}
-		pattern_ptr++;
 	}
+
+	*write_ptr = '\0';
 
 	return 0;
 }
@@ -83,7 +96,7 @@ void	print_usage(void)
 	printf("\t\t");
 	printf("[--quiet] [--help] [--usage] [--version]\n");
 	printf("\t\t");
-	printf("HOST ...");
+	printf("HOST ...\n");
 }
 
 void	print_version(void)
@@ -92,7 +105,7 @@ void	print_version(void)
 	printf("Copyright (C) 2024 Free Software Foundation, Inc.\n");
 	printf("This is free software: you are free to change and redistribute it.\n");
 	printf("There is NO WARRANTY, to the extent permitted by law.\n\n");
-	printf("Written by Davyd Bredykhin.");
+	printf("Written by Davyd Bredykhin.\n");
 }
 
 void	print_args(void)

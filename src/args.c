@@ -166,7 +166,7 @@ static void args_options(int argc, char **argv)
             case 'p':
                 strncpy(g_data.f_args.pattern, optarg, sizeof(g_data.f_args.pattern) - 1);
                 g_data.f_args.pattern[sizeof(g_data.f_args.pattern) - 1] = '\0';
-				if (is_valid_hex() != 0)
+				if (hex_serializer() != 0)
 					exit(EXIT_FAILURE);
                 break;
 			case 0:

@@ -7,7 +7,7 @@
 # include <stdbool.h>
 
 # define INET4_LEN              4
-# define PATTERN_SIZE           113
+# define PATTERN_SIZE           41
 # define RTT_RESERVE_BLOCK_SIZE 20              // Block size for memory allocation (for rtt_values array)
 
 # define FT_PING_TTL            64
