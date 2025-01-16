@@ -15,6 +15,9 @@
 # include <err.h>
 # include <errno.h>             // For handle recvfrom errors
 # include <limits.h>
+# include <pthread.h>
+
+pthread_t   recv_thread;
 
 static unsigned short   checksum(void *b, int len) {
     unsigned short  *buf = b;
@@ -181,71 +184,64 @@ static void store_rtt(double rtt)
     g_data.stats.rtt_count++;
 }
 
-static void recv_icmp_response(int sock)
+static void *recv_icmp_thread(void *sock_ptr)
 {
+    int                 sock = *((int *)sock_ptr);
     char                buffer[4096];
     struct sockaddr_in  sender;
     socklen_t           sender_len = sizeof(sender);
     ssize_t             bytes_received;
 
     struct iphdr        *iph;
-    int                 iph_len, select_ret;
+    int                 iph_len;
     struct icmphdr      *icmph;
     struct timeval      send_time, recv_time;
     double              rtt;
 
-    fd_set              read_fds;
-    struct timeval      timeout;
-
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
-    FD_ZERO(&read_fds);
-    FD_SET(sock, &read_fds);
-
-    select_ret = select(sock + 1, &read_fds, NULL, NULL, &timeout);
-
-    if (select_ret <= 0)
-        return;
-
-    bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
+    while (1)
+    {
+        bytes_received = recvfrom(sock, buffer, sizeof(buffer), 0,
                             (struct sockaddr *)&sender, &sender_len);
 
-    if (bytes_received < 0)
-    {
-        perror("recvfrom error");
-        return;
+        if (bytes_received < 0)
+        {
+            perror("recvfrom error");
+            continue;
+        }
+
+        if (gettimeofday(&recv_time, NULL) == -1) {
+            perror("Failed to get time of day");
+            continue;
+        }
+
+        iph = (struct iphdr *)buffer;
+        iph_len = iph->ihl * 4;
+        icmph = (struct icmphdr *)(buffer + iph_len);
+
+        if (icmph->type == ICMP_ECHOREPLY)
+        {
+            memcpy(&send_time, buffer + iph_len + sizeof(struct icmphdr), sizeof(struct timeval));
+
+            rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
+            rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
+
+            store_rtt(rtt);
+
+            if (!g_data.f_args.q_flag)
+                printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+                    inet_ntoa(sender.sin_addr),
+                    ntohs(icmph->un.echo.sequence),
+                    iph->ttl,
+                    rtt);
+        }
+        else
+        {
+            fprintf(stderr, "Received non-echo reply ICMP packet (type=%d, code=%d)\n",
+                    icmph->type, icmph->code);
+        }
     }
 
-    if (gettimeofday(&recv_time, NULL) == -1) {
-        perror("Failed to get time of day");
-        return;
-    }
-
-    iph = (struct iphdr *)buffer;
-    iph_len = iph->ihl * 4;
-    icmph = (struct icmphdr *)(buffer + iph_len);
-
-    if (icmph->type == ICMP_ECHOREPLY)
-    {
-        memcpy(&send_time, buffer + iph_len + sizeof(struct icmphdr), sizeof(struct timeval));
-
-        rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
-        rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
-
-        store_rtt(rtt);
-        if (!g_data.f_args.q_flag)
-            printf("64 bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
-                inet_ntoa(sender.sin_addr),
-                ntohs(icmph->un.echo.sequence),
-                iph->ttl,
-                rtt);
-    }
-    else
-    {
-        fprintf(stderr, "Received non-echo reply ICMP packet (type=%d, code=%d)\n",
-                icmph->type, icmph->code);
-    }
+    return NULL;
 }
 
 static void send_icmp_request(char *packet, uint16_t iph_totallen, struct sockaddr_in dest)
@@ -288,6 +284,14 @@ void    init_ping(void)
     icmphdr_staticdata_prep(packet, icmph);
     display_ping_intro();
 
+
+    // Create a thread that will and print the answers from hosts
+    if (pthread_create(&recv_thread, NULL, recv_icmp_thread, &g_data.sock) != 0)
+    {
+        perror("Failed to create receive thread");
+        exit_failure(NULL);
+    }
+
     packet_count = g_data.f_args.count > 0 ? g_data.f_args.count : INT_MAX;
 
     while (g_continue_ping && packet_count > 0)
@@ -299,14 +303,13 @@ void    init_ping(void)
         // Send ping to destination
         send_icmp_request(packet, iph->tot_len, dest);
 
-        // Waiting for response
-        recv_icmp_response(g_data.sock);
-
-        packet_count--;
-
         // Delay before sending each pack.
         sleep(1);
+        packet_count--;
     }
+
+    pthread_cancel(recv_thread);
+    pthread_join(recv_thread, NULL);
 
     print_stats();
 }

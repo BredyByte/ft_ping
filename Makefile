@@ -7,7 +7,7 @@ INC_PATH = inc
 HEADERS = -I ./$(INC_PATH)
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -g
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=c99 -D_POSIX_C_SOURCE=200112L -g -pthread
 
 REMOVE = rm -rf
 
