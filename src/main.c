@@ -12,7 +12,7 @@
 t_ping			g_data;
 volatile bool	g_continue_ping = true;
 
-void handle_interrupt(int sig)
+static void	handle_interrupt(int sig)
 {
     (void)sig;
     g_continue_ping = false;  // For interrupt ping-lifecycle

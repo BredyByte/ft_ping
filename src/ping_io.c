@@ -86,14 +86,14 @@ static uint16_t generate_packet_id(void)
     return packet_id;
 }
 
-static void refill_iphdr(void *packet, struct iphdr *iph)
+static void iphdr_dynamicdata_prep(void *packet, struct iphdr *iph)
 {
     iph->id = htons(generate_packet_id());
     iph->check = 0;
     iph->check = checksum((unsigned short *)packet, IP_HDR_SIZE);
 }
 
-static void prep_iphdr(struct iphdr *iph)
+static void iphdr_staticdata_prep(struct iphdr *iph)
 {
     iph->ihl = 5;
     iph->version = 4;
@@ -108,13 +108,28 @@ static void prep_iphdr(struct iphdr *iph)
     iph->check = 0;
 }
 
-static void prep_icmphdr(struct icmphdr *icmph)
+static void icmphdr_dynamicdata_prep(void *packet, struct icmphdr *icmph)
 {
+    unsigned char   *ptr = (unsigned char *)packet;
+
+    fill_icmp_timestamp(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE);
+
+    icmph->un.echo.sequence = htons(g_data.sequence++);
+    icmph->checksum = 0;
+    icmph->checksum = checksum((unsigned short *)icmph, ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE);
+}
+
+static void icmphdr_staticdata_prep(void *packet, struct icmphdr *icmph)
+{
+    unsigned char   *ptr = (unsigned char *)packet;
+
     icmph->type = ICMP_ECHO;
     icmph->code = 0;
     icmph->un.echo.id = htons(g_data.icmp_id);
     icmph->un.echo.sequence = htons(0);
     icmph->checksum = 0;
+
+    fill_icmp_data(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_TIMESTAMP_SIZE, ICMP_PAYLOAD_SIZE);
 }
 
 static void sock_create(int *sock)
@@ -174,7 +189,7 @@ static void recv_icmp_response(int sock)
     ssize_t             bytes_received;
 
     struct iphdr        *iph;
-    int                 iph_len;
+    int                 iph_len, select_ret;
     struct icmphdr      *icmph;
     struct timeval      send_time, recv_time;
     double              rtt;
@@ -188,7 +203,7 @@ static void recv_icmp_response(int sock)
     FD_ZERO(&read_fds);
     FD_SET(sock, &read_fds);
 
-    int select_ret = select(sock + 1, &read_fds, NULL, NULL, &timeout);
+    select_ret = select(sock + 1, &read_fds, NULL, NULL, &timeout);
 
     if (select_ret <= 0)
         return;
@@ -253,44 +268,33 @@ static void display_ping_intro(void)
     printf("\n");
 }
 
-static void refill_icmpdata(void *packet, struct icmphdr *icmph)
-{
-    unsigned char *ptr = (unsigned char *)packet;
-
-    fill_icmp_data(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE + ICMP_TIMESTAMP_SIZE, ICMP_PAYLOAD_SIZE);
-    fill_icmp_timestamp(ptr + IP_HDR_SIZE + ICMP_HDR_SIZE);
-
-    icmph->un.echo.sequence = htons(g_data.sequence++);
-
-    icmph->checksum = 0;
-    icmph->checksum = checksum((unsigned short *)icmph, ICMP_HDR_SIZE + ICMP_PAYLOAD_SIZE);
-}
-
 void    init_ping(void)
 {
     char                packet[4096];
 	struct iphdr        *iph = (struct iphdr *)packet;
     struct icmphdr      *icmph = (struct icmphdr *)(packet + sizeof(struct iphdr));
     struct sockaddr_in  dest;
+    int                 packet_count;
 
 	memset(packet, 0, sizeof(packet));
     sock_create(&g_data.sock);
-    prep_iphdr(iph);
+    iphdr_staticdata_prep(iph);
 
     // Config dest addres
     dest.sin_port = 0;
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = iph->daddr;
 
-    prep_icmphdr(icmph);
+    icmphdr_staticdata_prep(packet, icmph);
     display_ping_intro();
 
-    int packet_count = g_data.f_args.count > 0 ? g_data.f_args.count : INT_MAX;
+    packet_count = g_data.f_args.count > 0 ? g_data.f_args.count : INT_MAX;
 
     while (g_continue_ping && packet_count > 0)
     {
-        refill_iphdr(packet, iph);
-        refill_icmpdata(packet, icmph);
+        // Refill the data that changes when sending a new package
+        iphdr_dynamicdata_prep(packet, iph);
+        icmphdr_dynamicdata_prep(packet, icmph);
 
         // Send ping to destination
         send_icmp_request(packet, iph->tot_len, dest);
