@@ -8,5 +8,6 @@ void	print_version(void);
 void	print_args(void);
 void	exit_failure(const char *message);
 void 	free_allocations();
+void	sleep_microseconds(long microseconds);
 
 #endif

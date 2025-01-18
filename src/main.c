@@ -1,13 +1,14 @@
-#include "defines.h"
-#include "utils.h"
-#include "args.h"
-#include "ping_io.h"
-#include "net_interface.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdbool.h>
+# include "defines.h"
+# include "utils.h"
+# include "args.h"
+# include "ping_io.h"
+# include "net_interface.h"
+# include "ping_stats.h"
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <signal.h>
+# include <stdbool.h>
 
 t_ping			g_data;
 volatile bool	g_continue_ping = true;
@@ -19,8 +20,8 @@ static void	handle_interrupt(int sig)
 }
 
 
-int	main(int argc, char **argv) {
-
+int	main(int argc, char **argv)
+{
 	if (getuid() != 0)
 	{
 		fprintf(stderr,"ft_ping: root privileges are required to run ft_ping.\n");
@@ -35,6 +36,8 @@ int	main(int argc, char **argv) {
 	get_available_interface();
 
 	init_ping();
+
+	print_stats();
 
 	free_allocations();
 

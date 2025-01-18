@@ -1,6 +1,5 @@
 # include "defines.h"
 # include "utils.h"
-# include "ping_stats.h"
 # include <netinet/ip_icmp.h>	// Def. struct for ICMP packet header
 # include <netinet/ip.h>		// Def. struct for IP packet header
 # include <sys/socket.h>
@@ -16,8 +15,6 @@
 # include <errno.h>             // For handle recvfrom errors
 # include <limits.h>
 # include <pthread.h>
-
-pthread_t   recv_thread;
 
 static unsigned short   checksum(void *b, int len) {
     unsigned short  *buf = b;
@@ -72,9 +69,7 @@ static void fill_icmp_data(unsigned char *buffer, size_t size)
     }
 
     for (size_t i = 0; i < size; i++)
-    {
         buffer[i] = temp_buffer[i % temp_len];
-    }
 }
 
 static uint16_t generate_packet_id(void)
@@ -271,12 +266,13 @@ void    init_ping(void)
     struct icmphdr      *icmph = (struct icmphdr *)(packet + sizeof(struct iphdr));
     struct sockaddr_in  dest;
     int                 packet_count;
+    pthread_t           recv_thread;
 
 	memset(packet, 0, sizeof(packet));
     sock_create(&g_data.sock);
     iphdr_staticdata_prep(iph);
 
-    // Config dest addres
+    // Config dest address
     dest.sin_port = 0;
     dest.sin_family = AF_INET;
     dest.sin_addr.s_addr = iph->daddr;
@@ -284,8 +280,7 @@ void    init_ping(void)
     icmphdr_staticdata_prep(packet, icmph);
     display_ping_intro();
 
-
-    // Create a thread that will and print the answers from hosts
+    // Create a thread to receive and print responses from hosts
     if (pthread_create(&recv_thread, NULL, recv_icmp_thread, &g_data.sock) != 0)
     {
         perror("Failed to create receive thread");
@@ -296,20 +291,23 @@ void    init_ping(void)
 
     while (g_continue_ping && packet_count > 0)
     {
-        // Refill the data that changes when sending a new package
+        // Refill the data that changes when sending a new packet
         iphdr_dynamicdata_prep(packet, iph);
         icmphdr_dynamicdata_prep(packet, icmph);
 
         // Send ping to destination
         send_icmp_request(packet, iph->tot_len, dest);
 
+        if (packet_count == 1) {
+            sleep_microseconds(15000);
+            break;
+        }
+
         // Delay before sending each pack.
-        sleep(1);
+        sleep_microseconds(1000000);
         packet_count--;
     }
 
     pthread_cancel(recv_thread);
     pthread_join(recv_thread, NULL);
-
-    print_stats();
 }

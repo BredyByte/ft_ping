@@ -17,11 +17,7 @@ static struct option long_options[] =
     {"help", no_argument, NULL, 0},         	// --help -> -
     {"version", no_argument, NULL, 'V'},      	// --version -> 'V'
     {"count", required_argument, NULL, 'c'},  	// --count=NUMBER -> 'c'
-    {"interval", required_argument, NULL, 'i'}, // --interval=NUMBER -> 'i'
-    {"timeout", required_argument, NULL, 'w'},  // --timeout=N -> 'w'
-    {"linger", required_argument, NULL, 'W'},   // --linger=N -> 'W'
     {"pattern", required_argument, NULL, 'p'},  // --pattern=PATTERN -> 'p'
-    {"ttl", required_argument, NULL, 0},        // --ttl=N -> -
     {"usage", no_argument, NULL, 0},        	// --usage -> -
     {0, 0, 0, 0}
 };
@@ -38,11 +34,7 @@ static void defs_global_strust(void)
     g_data.f_args.v_flag = false;
 	g_data.f_args.q_flag = false;
 	g_data.f_args.count = -1;
-	g_data.f_args.interval = -1;
-	g_data.f_args.timeout = -1;
-	g_data.f_args.linger = -1;
 	g_data.f_args.pattern[0] = '\0';
-	g_data.f_args.ttl = -1;
 
     g_data.stats.packets_transmitted = 0;
     g_data.stats.packets_received = 0;
@@ -112,20 +104,6 @@ static int  is_valid_int(const char *str)
 	return (res * sign);
 }
 
-static void exit_non_acceptable_value(int num)
-{
-    if (num == 0)
-    {
-        fprintf(stderr, "ft_ping: option value too small: %s \n", optarg);
-        exit(EXIT_FAILURE);
-    }
-    else if (num < 0)
-    {
-        fprintf(stderr, "ft_ping: option value too big: %s \n", optarg);
-        exit(EXIT_FAILURE);
-    }
-}
-
 static void args_options(int argc, char **argv)
 {
 	int opt;
@@ -152,17 +130,6 @@ static void args_options(int argc, char **argv)
                 if (g_data.f_args.count <= 0 )
                     g_data.f_args.count = -1;
                 break;
-            case 'i':
-                g_data.f_args.interval = atoi(optarg);
-                break;
-            case 'w':
-                g_data.f_args.timeout = is_valid_int(optarg);
-                exit_non_acceptable_value(g_data.f_args.timeout);
-                break;
-            case 'W':
-                g_data.f_args.linger = is_valid_int(optarg);
-                exit_non_acceptable_value(g_data.f_args.linger);
-                break;
             case 'p':
                 strncpy(g_data.f_args.pattern, optarg, sizeof(g_data.f_args.pattern) - 1);
                 g_data.f_args.pattern[sizeof(g_data.f_args.pattern) - 1] = '\0';
@@ -170,12 +137,7 @@ static void args_options(int argc, char **argv)
 					exit(EXIT_FAILURE);
                 break;
 			case 0:
-                if (strcmp("ttl", long_options[long_index].name) == 0)
-                {
-                    g_data.f_args.ttl = is_valid_int(optarg);
-                    exit_non_acceptable_value(g_data.f_args.ttl);
-                }
-                else if (strcmp("usage", long_options[long_index].name) == 0)
+                if (strcmp("usage", long_options[long_index].name) == 0)
                 {
 					print_usage();
 					exit(EXIT_SUCCESS);
@@ -200,7 +162,7 @@ static void args_options(int argc, char **argv)
     }
 }
 
-void args(int argc, char **argv)
+void    args(int argc, char **argv)
 {
     handle_quest_mark(argc, argv);
 	defs_global_strust();

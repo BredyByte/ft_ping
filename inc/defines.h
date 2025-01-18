@@ -26,11 +26,7 @@ typedef struct s_opts
     bool	            v_flag;       	        // --verbose (-v)
     bool	            q_flag;       	        // --quiet (-q)
     int		            count;         	        // --count (-c)
-    int		            interval;      	        // --interval (-i)
-    int		            timeout;      	        // --timeout (-w)
-    int		            linger;        	        // --linger (-W)
     char	            pattern[PATTERN_SIZE];	// --pattern (-p)
-    int		            ttl;           	        // --ttl
 }   t_opts;
 
 typedef struct s_ping_stats

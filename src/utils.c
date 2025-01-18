@@ -3,6 +3,15 @@
 # include <ctype.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include <time.h>
+
+void	sleep_microseconds(long microseconds)
+{
+    struct timespec	ts;
+    ts.tv_sec = microseconds / 1000000;
+    ts.tv_nsec = (microseconds % 1000000) * 1000;
+    nanosleep(&ts, NULL);
+}
 
 void	free_allocations(void)
 {
@@ -19,8 +28,6 @@ void	exit_failure(const char *message)
 {
 	if (message)
 		fprintf(stderr, "%s\n", message);
-	else
-		fprintf(stderr, "Falat error\n");
 
 	free_allocations();
 
@@ -65,15 +72,10 @@ void	print_help(void)
 	printf(" Options valid for all request types:\n");
 	printf("\n");
 	printf("  -c, --count=NUMBER\t\tstop after sending NUMBER packets\n");
-	printf("  -i, --interval=NUMBER\t\twait NUMBER seconds between sending each packet\n");
-	printf("      --ttl=N\t\t\tspecify N as time-to-live\n");
 	printf("  -v, --verbose\t\t\tverbose output\n");
-	printf("  -w, --timeout=N\t\tstop after N seconds\n");
-	printf("  -W, --linger=N\t\tnumber of seconds to wait for response\n");
 	printf("\n");
 	printf(" Options valid for --echo requests:\n");
 	printf("\n");
-	printf("  -f, --flood\t\t\tflood ping (root only)\n");
 	printf("  -p, --pattern=PATTERN\t\tfill ICMP packet with given pattern (hex)\n");
 	printf("  -q, --quiet\t\t\tquiet output\n");
 	printf("  -?, --help\t\t\tgive this help list\n");
@@ -88,13 +90,11 @@ void	print_help(void)
 
 void	print_usage(void)
 {
-	printf("Usage: ft_ping\t[-vfq?V] [-c NUMBER] [-i NUMBER] [-w N] [-W N] [-p PATTERN]\n");
+	printf("Usage: ft_ping\t[-vq?V] [-c NUMBER] [-p PATTERN] [--count=NUMBER]\n");
 	printf("\t\t");
-	printf("[--count=NUMBER] [--interval=NUMBER] [--ttl=N] [--verbose]\n");
+	printf("[--verbose] [--pattern=PATTERN] [--quiet] [--help]\n");
 	printf("\t\t");
-	printf("[--timeout=N] [--linger=N] [--flood] [--pattern=PATTERN]\n");
-	printf("\t\t");
-	printf("[--quiet] [--help] [--usage] [--version]\n");
+	printf("[--usage] [--version]\n");
 	printf("\t\t");
 	printf("HOST ...\n");
 }
@@ -123,10 +123,5 @@ void	print_args(void)
 	printf("	Verbose:\t%s\n", g_data.f_args.v_flag ? "True" : "False");
 	printf("	Quiet:\t\t%s\n", g_data.f_args.q_flag ? "True" : "False");
 	printf("	Count:\t\t%d\n", g_data.f_args.count);
-	printf("	Interval:\t%d\n", g_data.f_args.interval);
-	printf("	Timeout:\t%d\n", g_data.f_args.timeout);
-	printf("	Linger:\t\t%d\n", g_data.f_args.linger);
-	printf("	Pattern:\t%s", g_data.f_args.pattern[0] == '\0' ? "Empty" : g_data.f_args.pattern);
-	printf("\n");
-	printf("	ttl:\t\t%d\n", g_data.f_args.ttl);
+	printf("	Pattern:\t%s\n", g_data.f_args.pattern[0] == '\0' ? "Empty" : g_data.f_args.pattern);
 }
