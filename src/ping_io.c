@@ -16,7 +16,8 @@
 # include <limits.h>
 # include <pthread.h>
 
-static unsigned short   checksum(void *b, int len) {
+static unsigned short   checksum(void *b, int len)
+{
     unsigned short  *buf = b;
     unsigned int    sum = 0;
 
@@ -299,7 +300,7 @@ void    init_ping(void)
         send_icmp_request(packet, iph->tot_len, dest);
 
         if (packet_count == 1) {
-            sleep_microseconds(15000);
+            sleep_microseconds(200000);
             break;
         }
 
