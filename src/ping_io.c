@@ -299,16 +299,16 @@ void    init_ping(void)
         // Send ping to destination
         send_icmp_request(packet, iph->tot_len, dest);
 
-        if (packet_count == 1) {
-            sleep_microseconds(200000);
-            break;
-        }
-
-        // Delay before sending each pack.
-        sleep_microseconds(1000000);
         packet_count--;
+
+        if (packet_count == 0)
+            break;
+
+        // Delay before sending each packet
+        sleep_microseconds(1000000);
     }
 
+    sleep_microseconds(500000); 
     pthread_cancel(recv_thread);
     pthread_join(recv_thread, NULL);
 }

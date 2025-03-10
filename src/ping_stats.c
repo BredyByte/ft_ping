@@ -41,29 +41,19 @@ double  calc_avg_rrt(const double arr[], int size)
     return sum / size;
 }
 
-double  calc_stddev_rrt(const double arr[], int size)
+double  calc_stddev_rrt(const double arr[], int size, double avg)
 {
-    if (arr == NULL || size <= 0)
+    if (arr == NULL || size <= 1)
         return 0;
 
-    double  diffs_avg[size];
-    double  aux = 0;
+    double sum = 0;
 
-
-    // Calculate squared differences between each RTT and the average RTT
-    for (int i = 0; i < size; i++)
-    {
-        aux = arr[i] - g_data.stats.rtt_avg;
-        diffs_avg[i] = aux * aux;
+    for (int i = 0; i < size; i++) {
+        double diff = arr[i] - avg;
+        sum += diff * diff;
     }
 
-    // Sum the squared differences
-    aux = 0;
-    for (int i = 0; i < size; i++)
-        aux += diffs_avg[i];
-
-
-    return (aux / size);
+    return sqrt(sum / (size - 1)); // Sample standard deviation
 }
 
 void    print_stats()
@@ -76,7 +66,7 @@ void    print_stats()
     g_data.stats.rtt_min = calc_min_rtt(g_data.stats.rtt_values, g_data.stats.rtt_count);
     g_data.stats.rtt_max = calc_max_rtt(g_data.stats.rtt_values, g_data.stats.rtt_count);
     g_data.stats.rtt_avg = calc_avg_rrt(g_data.stats.rtt_values, g_data.stats.rtt_count);
-    g_data.stats.rtt_stddev = calc_stddev_rrt(g_data.stats.rtt_values, g_data.stats.rtt_count);
+    g_data.stats.rtt_stddev = calc_stddev_rrt(g_data.stats.rtt_values, g_data.stats.rtt_count, g_data.stats.rtt_avg);
 
     printf("--- %s ping statistics ---\n", g_data.dest_host);
     printf("%d packets transmitted, %d packets received, %d%% packet loss\n",

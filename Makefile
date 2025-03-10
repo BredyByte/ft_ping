@@ -8,6 +8,7 @@ HEADERS = -I ./$(INC_PATH)
 
 CC = gcc
 CFLAGS =  -Wall -Wextra -Werror -pedantic -std=c11 -D_POSIX_C_SOURCE=200112L -g -pthread
+LDFLAGS = -lm
 
 REMOVE = rm -rf
 
@@ -24,7 +25,7 @@ OBJ = $(addprefix $(OBJ_PATH)/, $(SRC:.c=.o))
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) $(HEADERS) -o $@
+	@$(CC) $(CFLAGS) $(OBJ) $(HEADERS) -o $@ $(LDFLAGS)
 	@echo "ft_ping is compiled!"
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c $(INC_PATH)/*.h
