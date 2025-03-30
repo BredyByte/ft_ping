@@ -121,8 +121,3 @@ struct icmphdr
 };
 ```
 
-## Subject
-All the details of this project, including the specific requirements and implementation guidelines, are thoroughly described in the `Subject.pdf` file.
-
-## Evaluation
-All information regarding the evaluation process and the grading criteria for this project is detailed in the `Evaluation.pdf` file. Please refer to it for a complete overview of the assessment procedures.
